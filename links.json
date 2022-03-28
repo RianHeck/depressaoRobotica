@@ -1,3 +1,4 @@
 {
-    "!comandos" : "**Depressao Robotica** \n !ping, !roleta, !comandos"
+    "!comandos" : "**Depressao Robotica** \n !ping, !roleta {numero de balas}, !comandos, !provas",
+    ";-;" : ";-;"
 }
