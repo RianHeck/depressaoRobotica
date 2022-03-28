@@ -104,10 +104,9 @@ async def on_message(message):
                     value = provas[attribute]
                     a = datetime.strptime(value, '%d-%m-%y')
                     if(a-data) <= timedelta(days=7):
-                        channel = client.get_channel(859484861722918912)
                         dia = a.strftime('%A, %d/%m/%y')
                         msg = f'{message.author.mention} Prova de {attribute}, no dia {dia} em {(a-data).days} dias'
-                        await channel.send(msg)
+                        await message.channel.send(msg)
         
         # SE QUISER ADICIONAR ALGUM COMANDO:
         # elif(comando == 'nome do comando' and argumentos == 'argumentos se tiver'):
@@ -125,7 +124,13 @@ async def aviso_provas():
     for attribute in provas:
             value = provas[attribute]
             a = datetime.strptime(value, '%d-%m-%y')
-            if(a-data) <= timedelta(days=7):
+            if(a-data) <= timedelta(days=0):
+                canalProvas = client.get_channel(958058492550316113)
+                dia = a.strftime('%A, %d/%m/%y')
+                msg = f'@everyone @everyone @everyone @everyone @everyone\n **É HOJE RAPAZIADA** PROVA DE {attribute}, {dia}'
+                await canalProvas.send(msg)
+            
+            elif(a-data) <= timedelta(days=7):
                 canalProvas = client.get_channel(958058492550316113)
                 dia = a.strftime('%A, %d/%m/%y')
                 msg = f'@everyone Prova de {attribute}, {dia} em {(a-data).days} dias'
