@@ -18,6 +18,8 @@ prov = open('provas.json', "r")
 provas = json.load(prov)
 # importando o token por um json
 
+# importando o token por um json
+
 with open('config.json', 'r') as conf:
     confs = json.load(conf)
     btoken = confs['token']
@@ -61,7 +63,7 @@ async def on_message(message):
 
     # pequena funcao anônima para encurtar a mesma funcao de sempre
     manda = lambda mens: message.channel.send(f'{mens}')
-
+        
     if message.content.startswith(prefix):
         comando, argumentos = trata_argumentos(message, 0)
 
