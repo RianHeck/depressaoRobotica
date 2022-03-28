@@ -7,7 +7,12 @@ from discord.ext import tasks
 import locale
 
 
+# não sei se ainda é necessário, mas vou deixar porque não faz tanto mal
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+# parar de usar locale, usar weekday e cadeia de ifs
+# https://stackoverflow.com/questions/34076198/how-do-i-convert-the-weekday-of-a-particular-date
+# tipo isso
+
 
 # importando respostas basicas = fala algo : responde algo
 
@@ -47,14 +52,17 @@ def trata_argumentos(message, raw):
     argumentos = "".join(str(x) for x in argumentoslist)[2:len(argumentoslist) - 2].replace("\'", "").replace(",", "")
     return comando, argumentos
 
+def diaSemana(wDia):
+    dias = {0: 'Segunda-feira', 1 : 'Terça-feira', 2 : 'Quarta-feira', 3 : 'Quinta-feira', 4 : 'Sexta-feira', 5 : 'Sábado', 6 : 'Domingo'}
+    return dias[wDia]
+
 @client.event
 async def on_ready():
     print('Conectado como {0.user}'.format(client))
     await client.change_presence(activity=discord.Game('"!comandos" para ajuda'))
     # await client.change_presence(status=discord.Status.offline)
     print('Bot foi iniciado, com {} usuários, em {} servers.' .format(len(client.users), len(client.guilds)))
-    aviso_provas.start()
-
+    aviso_provas.start() 
 
 @client.event
 async def on_message(message):
@@ -63,7 +71,7 @@ async def on_message(message):
 
     # pequena funcao anônima para encurtar a mesma funcao de sempre
     manda = lambda mens: message.channel.send(f'{mens}')
-        
+
     if message.content.startswith(prefix):
         comando, argumentos = trata_argumentos(message, 0)
 
@@ -99,15 +107,31 @@ async def on_message(message):
 
         elif comando == 'provas':
             data = datetime.now().strftime('%d/%m/%y')
+            diaDaSemana = datetime.now().weekday()
+            await manda(f'**{diaSemana(diaDaSemana)}, {data}**\n-----------------------------------')
             data = datetime.strptime(data, '%d/%m/%y')
+
             for attribute in provas:
                     value = provas[attribute]
                     a = datetime.strptime(value, '%d-%m-%y')
-                    if(a-data) <= timedelta(days=7):
-                        dia = a.strftime('%A, %d/%m/%y')
-                        msg = f'{message.author.mention} Prova de {attribute}, no dia {dia} em {(a-data).days} dias'
-                        await message.channel.send(msg)
-        
+                    if(a-data) <= timedelta(days=0):
+                        dia = a.strftime('%d/%m/%y')
+                        diaDaSemana = a.weekday()
+                        msg = f'->{message.author.mention} **É HOJE FIOTE** PROVA DE {attribute}, {diaSemana(diaDaSemana)}, {dia}'
+                        await manda(msg)
+                    
+                    elif(a-data) <= timedelta(days=7):
+                        dia = a.strftime('%d/%m/%y')
+                        diaDaSemana = a.weekday()
+                        msg = f'->{message.author.mention} Prova de {attribute}, {diaSemana(diaDaSemana)}, {dia} em {(a-data).days} dias'
+                        await manda(msg)
+            await manda('-----------------------------------')
+
+
+        elif comando == 'deleta':
+            canalProvas = client.get_channel(958058492550316113)
+            await canalProvas.purge(limit=2)
+
         # SE QUISER ADICIONAR ALGUM COMANDO:
         # elif(comando == 'nome do comando' and argumentos == 'argumentos se tiver'):
         # o comando await manda('') manda uma mensagem
@@ -119,23 +143,30 @@ async def on_message(message):
 
 @tasks.loop(seconds=60*60*24) # a cada 1 dia
 async def aviso_provas():
+    canalProvas = client.get_channel(958058492550316113)
+
+    await canalProvas.purge(bulk=False)
+
     data = datetime.now().strftime('%d/%m/%y')
+    diaDaSemana = datetime.now().weekday()
+    await canalProvas.send(f'**{diaSemana(diaDaSemana)}, {data}**\n-----------------------------------')
     data = datetime.strptime(data, '%d/%m/%y')
+
     for attribute in provas:
             value = provas[attribute]
             a = datetime.strptime(value, '%d-%m-%y')
             if(a-data) <= timedelta(days=0):
-                canalProvas = client.get_channel(958058492550316113)
-                dia = a.strftime('%A, %d/%m/%y')
-                msg = f'@everyone @everyone @everyone @everyone @everyone\n **É HOJE RAPAZIADA** PROVA DE {attribute}, {dia}'
+                dia = a.strftime('%d/%m/%y')
+                diaDaSemana = a.weekday()
+                msg = f'->@everyone @everyone @everyone @everyone @everyone\n**É HOJE RAPAZIADA** PROVA DE {attribute}, {diaSemana(diaDaSemana)},    {dia}'
                 await canalProvas.send(msg)
             
             elif(a-data) <= timedelta(days=7):
-                canalProvas = client.get_channel(958058492550316113)
-                dia = a.strftime('%A, %d/%m/%y')
-                msg = f'@everyone Prova de {attribute}, {dia} em {(a-data).days} dias'
+                dia = a.strftime('%d/%m/%y')
+                diaDaSemana = a.weekday()
+                msg = f'->@everyone Prova de {attribute}, {diaSemana(diaDaSemana)}, {dia} em {(a-data).days} dias'
                 await canalProvas.send(msg)
-    
+    await canalProvas.send('-----------------------------------')
 
 client.run(btoken)
 
