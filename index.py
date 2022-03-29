@@ -79,6 +79,9 @@ async def on_message(message):
             pingm = await manda('Ping?')
             await pingm.edit(content = 'Pong! Latência de {0} ms. Latência de API {1} ms'.format(str(pingm.created_at - message.created_at)[8:-3], round(client.latency*1000)))
 
+        elif comando == 'comandos':
+            await manda(f'**{client.user}** \n !ping, !roleta (numero de balas), !comandos, !provas')
+
         elif comando == 'roleta':
             if argumentos=="":
                 n = random.randint(0, 5)
