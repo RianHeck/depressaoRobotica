@@ -1,5 +1,6 @@
 from distutils import archive_util
 import datetime
+from email import message_from_binary_file
 import discord
 import json
 import random
@@ -31,6 +32,9 @@ with open('config.json', 'r') as conf:
 
 # colocando o prefixo no próprio arquivo, porque eu nao sei mexer no git
 prefix = '!'
+# IDCanalProvas = 958058492550316113
+IDCanalProvas = 317781355113086976
+donoID = 236901700475027456
 
 # pemitindo o bot ver outras pessoas, e mais algumas coisas da API que eu com certeza entendo
 intents = discord.Intents.all()
@@ -75,8 +79,8 @@ async def on_ready():
     # nao rodar as mensagens de prova automaticas
     # se o host for windows
     # (provavelmente é teste)
-    if not plataformaWindows:
-        aviso_provas.start() 
+    if plataformaWindows:
+        aviso_provas.start(IDCanalProvas) 
 
 @client.event
 async def on_message(message):
@@ -123,34 +127,36 @@ async def on_message(message):
                     await manda('Sobreviveu!')
 
         elif comando == 'provas':
+            await message.delete()
             hoje = datetime.date.today()
             hojeString = datetime.date.today().strftime('%d/%m/%y')
             diaDaSemana = hoje.weekday()
 
-            await manda(f'**{diaSemana(diaDaSemana)}, {hojeString}**\n-----------------------------------')
+            embedProvas = discord.Embed(
+            title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description=f'{message.author.mention} Provas para a semana', color=0x336EFF)
 
             for attribute in provas:
                     value = provas[attribute]
                     diaDaProva = datetime.date.fromisoformat(value)
 
                     if(diaDaProva-hoje).days == 0:
+                        embedProvas.color = 0xFF0000
                         dia = diaDaProva.strftime('%d/%m/%y')
                         diaDaSemana = diaSemana(diaDaProva.weekday())
-                        msg = f'->{message.author.mention} **É HOJE FIOTE** PROVA DE {attribute}, {diaDaSemana}, {dia}'
-                        await manda(msg)
+                        embedProvas.add_field(name=f'{attribute}', value=f'__->**É HOJE FIOTE** PROVA DE {attribute}, {diaDaSemana}, {dia}__', inline=False)
                     
                     elif(diaDaProva-hoje).days <= 7 and (diaDaProva-hoje).days > 0:
                         dia = diaDaProva.strftime('%d/%m/%y')
                         diaDaSemana = diaSemana(diaDaProva.weekday())
-                        msg = f'->{message.author.mention} Prova de {attribute}, {diaDaSemana}, {dia} em {(diaDaProva-hoje).days} dias'
-                        await manda(msg)
-
-            await manda('-----------------------------------')
+                        embedProvas.add_field(name=f'{attribute}', value=f'->Prova de {attribute}, {diaDaSemana}, {dia} em **{(diaDaProva-hoje).days} dias**', inline=False)
 
 
-        elif comando == 'deleta':
-            canalProvas = client.get_channel(958058492550316113)
-            await canalProvas.purge(limit=2)
+            mensagemEmbed = await message.channel.send(embed=embedProvas)
+            await mensagemEmbed.delete(delay=10)
+
+        elif comando == 'deleta' and message.author.id == donoID:
+            canalProvas = client.get_channel(IDCanalProvas)
+            await canalProvas.purge(limit=int(argumentos))
 
         # SE QUISER ADICIONAR ALGUM COMANDO:
         # elif(comando == 'nome do comando' and argumentos == 'argumentos se tiver'):
@@ -162,16 +168,18 @@ async def on_message(message):
 
 
 @tasks.loop(seconds=60*60*24) # a cada 1 dia
-async def aviso_provas():
-    canalProvas = client.get_channel(958058492550316113)
+async def aviso_provas(IDcanalProvas):
+    canalProvas = client.get_channel(IDcanalProvas)
 
-    await canalProvas.purge(bulk=False)
+    await canalProvas.purge(limit=1, bulk=False)
 
     hoje = datetime.date.today()
     hojeString = datetime.date.today().strftime('%d/%m/%y')
     diaDaSemana = hoje.weekday()
     
-    await canalProvas.send(f'**{diaSemana(diaDaSemana)}, {hojeString}**\n-----------------------------------')
+    embedProvas = discord.Embed(
+            title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description='@everyone Provas para a semana', color=0x336EFF)
+    
 
     for attribute in provas:
             value = provas[attribute]
@@ -179,18 +187,19 @@ async def aviso_provas():
             diaDaProva = datetime.date.fromisoformat(value)
 
             if(diaDaProva-hoje).days == 0:
+                embedProvas.color = 0xFF0000
                 dia = diaDaProva.strftime('%d/%m/%y')
                 diaDaSemana = diaSemana(diaDaProva.weekday())
-                msg = f'->@everyone @everyone @everyone @everyone @everyone\n**É HOJE RAPAZIADA** PROVA DE {attribute}, {diaDaSemana}, {dia}'
-                await canalProvas.send(msg)
-            
+                embedProvas.add_field(name=f'{attribute}', value=f'->@everyone @everyone @everyone @everyone @everyone\n**É HOJE RAPAZIADA** PROVA DE {attribute}, {diaDaSemana}, {dia}', inline=False)
+
             elif(diaDaProva-hoje).days <= 7 and (diaDaProva-hoje).days > 0:
                 dia = diaDaProva.strftime('%d/%m/%y')
                 diaDaSemana = diaSemana(diaDaProva.weekday())
-                msg = f'->@everyone Prova de {attribute}, {diaDaSemana}, {dia} em {(diaDaProva-hoje).days} dias'
-                await canalProvas.send(msg)
+                embedProvas.add_field(name=f'{attribute}', value=f'->@everyone Prova de {attribute}, {diaDaSemana}, {dia} em **{(diaDaProva-hoje).days} dias**', inline=False)
 
-    await canalProvas.send('-----------------------------------')
+
+    await canalProvas.send(embed=embedProvas)
+            
 
 client.run(btoken)
 
