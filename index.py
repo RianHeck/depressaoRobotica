@@ -32,9 +32,8 @@ with open('config.json', 'r') as conf:
 
 # colocando o prefixo no próprio arquivo, porque eu nao sei mexer no git
 prefix = '!'
-# IDCanalProvas = 958058492550316113
-IDCanalProvas = 317781355113086976
-donoID = 236901700475027456
+IDCanalProvas = 958058492550316113
+testeID = 236901700475027456
 
 # pemitindo o bot ver outras pessoas, e mais algumas coisas da API que eu com certeza entendo
 intents = discord.Intents.all()
@@ -154,7 +153,7 @@ async def on_message(message):
             mensagemEmbed = await message.channel.send(embed=embedProvas)
             await mensagemEmbed.delete(delay=10)
 
-        elif comando == 'deleta' and message.author.id == donoID:
+        elif comando == 'deleta' and message.author.id == testeID:
             canalProvas = client.get_channel(IDCanalProvas)
             await canalProvas.purge(limit=int(argumentos))
 
