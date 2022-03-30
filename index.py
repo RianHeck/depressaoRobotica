@@ -23,10 +23,6 @@ locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 data = open('links.json', "r")
 response_object = json.load(data)
 
-prov = open('provas.json', "r")
-provas = json.load(prov)
-# importando o token por um json
-
 # importando o token por um json
 
 with open('config.json', 'r') as conf:
@@ -129,7 +125,12 @@ async def on_message(message):
                     await manda('Sobreviveu!')
 
         elif comando == 'provas':
+            prov = open('provas.json', "r")
+            provas = json.load(prov)
+            prov.close()
+
             await message.delete()
+            
             hoje = datetime.date.today()
             hojeString = datetime.date.today().strftime('%d/%m/%y')
             diaDaSemana = hoje.weekday()
@@ -148,12 +149,12 @@ async def on_message(message):
                         embedProvas.color = 0xFF0000
                         dia = diaDaProva.strftime('%d/%m/%y')
                         diaDaSemana = diaSemana(diaDaProva.weekday())
-                        embedProvas.add_field(name=f'{attribute}', value=f'__->**É HOJE FIOTE** PROVA DE {attribute}, {diaDaSemana}, {dia}__', inline=False)
+                        embedProvas.add_field(name=f'•{attribute}', value=f'__->**É HOJE FIOTE** PROVA DE {attribute}, {diaDaSemana}, {dia}__', inline=False)
                     
                     elif(diaDaProva-hoje).days <= 7 and (diaDaProva-hoje).days > 0:
                         dia = diaDaProva.strftime('%d/%m/%y')
                         diaDaSemana = diaSemana(diaDaProva.weekday())
-                        embedProvas.add_field(name=f'{attribute}', value=f'->Prova de {attribute}, {diaDaSemana}, {dia} em **{(diaDaProva-hoje).days} dias**', inline=False)
+                        embedProvas.add_field(name=f'•{attribute}', value=f'->Prova de {attribute}, {diaDaSemana}, {dia} em **{(diaDaProva-hoje).days} dias**', inline=False)
 
 
             mensagemJunto = await manda(f'{message.author.mention}')
@@ -176,6 +177,10 @@ async def on_message(message):
 
 @tasks.loop(seconds=60*60*24) # a cada 1 dia
 async def aviso_provas(IDcanalProvas):
+    prov = open('provas.json', "r")
+    provas = json.load(prov)
+    prov.close()
+
     canalProvas = client.get_channel(IDcanalProvas)
 
     await canalProvas.purge(limit=2, bulk=False)
@@ -199,12 +204,12 @@ async def aviso_provas(IDcanalProvas):
                 embedProvas.color = 0xFF0000
                 dia = diaDaProva.strftime('%d/%m/%y')
                 diaDaSemana = diaSemana(diaDaProva.weekday())
-                embedProvas.add_field(name=f'{attribute}', value=f'__->**É HOJE RAPAZIADA** PROVA DE {attribute}, {diaDaSemana}, {dia}__', inline=False)
+                embedProvas.add_field(name=f'•{attribute}', value=f'__->**É HOJE RAPAZIADA** PROVA DE {attribute}, {diaDaSemana}, {dia}__', inline=False)
 
             elif(diaDaProva-hoje).days <= 7 and (diaDaProva-hoje).days > 0:
                 dia = diaDaProva.strftime('%d/%m/%y')
                 diaDaSemana = diaSemana(diaDaProva.weekday())
-                embedProvas.add_field(name=f'{attribute}', value=f'->Prova de {attribute}, {diaDaSemana}, {dia} em **{(diaDaProva-hoje).days} dias**', inline=False)
+                embedProvas.add_field(name=f'•{attribute}', value=f'->Prova de {attribute}, {diaDaSemana}, {dia} em **{(diaDaProva-hoje).days} dias**', inline=False)
 
     await canalProvas.send('@everyone')
     await canalProvas.send(embed=embedProvas)
