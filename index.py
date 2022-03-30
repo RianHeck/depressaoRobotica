@@ -1,4 +1,3 @@
-from distutils import archive_util
 import datetime
 from email import message_from_binary_file
 import discord
@@ -7,6 +6,10 @@ import random
 from discord.ext import tasks
 import locale
 from sys import platform
+
+# TENHO QUE REFATORAR TODO O CÓDIGO
+# ADICIONAR @commands E ESSAS COISAS
+# E VERIFICAR SE TEM PERMISSÃO PARA DELETAR MENSAGENS E TAL
 
 # não sei se ainda é necessário, mas vou deixar porque não faz tanto mal
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -78,7 +81,7 @@ async def on_ready():
     # nao rodar as mensagens de prova automaticas
     # se o host for windows
     # (provavelmente é teste)
-    if plataformaWindows:
+    if not plataformaWindows:
         aviso_provas.start(IDCanalProvas) 
 
 @client.event
@@ -132,13 +135,16 @@ async def on_message(message):
             diaDaSemana = hoje.weekday()
 
             embedProvas = discord.Embed(
-            title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description=f'{message.author.mention} Provas para a semana', color=0x336EFF)
+            title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para a semana', color=0x336EFF)
+
+            embedProvas.set_image(url='https://i.imgur.com/7nqUbE9.gif')
 
             for attribute in provas:
                     value = provas[attribute]
                     diaDaProva = datetime.date.fromisoformat(value)
 
                     if(diaDaProva-hoje).days == 0:
+                        embedProvas.set_image(url='https://i.imgur.com/kaAhqqC.gif')
                         embedProvas.color = 0xFF0000
                         dia = diaDaProva.strftime('%d/%m/%y')
                         diaDaSemana = diaSemana(diaDaProva.weekday())
@@ -150,8 +156,10 @@ async def on_message(message):
                         embedProvas.add_field(name=f'{attribute}', value=f'->Prova de {attribute}, {diaDaSemana}, {dia} em **{(diaDaProva-hoje).days} dias**', inline=False)
 
 
+            mensagemJunto = await manda(f'{message.author.mention}')
             mensagemEmbed = await message.channel.send(embed=embedProvas)
-            await mensagemEmbed.delete(delay=10)
+            await mensagemJunto.delete(delay=60)
+            await mensagemEmbed.delete(delay=60)
 
         elif comando == 'deleta' and message.author.id == testeID:
             canalProvas = client.get_channel(IDCanalProvas)
@@ -170,15 +178,16 @@ async def on_message(message):
 async def aviso_provas(IDcanalProvas):
     canalProvas = client.get_channel(IDcanalProvas)
 
-    await canalProvas.purge(limit=1, bulk=False)
+    await canalProvas.purge(limit=2, bulk=False)
 
     hoje = datetime.date.today()
     hojeString = datetime.date.today().strftime('%d/%m/%y')
     diaDaSemana = hoje.weekday()
     
     embedProvas = discord.Embed(
-            title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description='@everyone Provas para a semana', color=0x336EFF)
+            title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description='Provas para a semana', color=0x336EFF)
     
+    embedProvas.set_image(url='https://i.imgur.com/7nqUbE9.gif')
 
     for attribute in provas:
             value = provas[attribute]
@@ -186,17 +195,18 @@ async def aviso_provas(IDcanalProvas):
             diaDaProva = datetime.date.fromisoformat(value)
 
             if(diaDaProva-hoje).days == 0:
+                embedProvas.set_image(url='https://i.imgur.com/kaAhqqC.gif')
                 embedProvas.color = 0xFF0000
                 dia = diaDaProva.strftime('%d/%m/%y')
                 diaDaSemana = diaSemana(diaDaProva.weekday())
-                embedProvas.add_field(name=f'{attribute}', value=f'->@everyone @everyone @everyone @everyone @everyone\n**É HOJE RAPAZIADA** PROVA DE {attribute}, {diaDaSemana}, {dia}', inline=False)
+                embedProvas.add_field(name=f'{attribute}', value=f'__->**É HOJE RAPAZIADA** PROVA DE {attribute}, {diaDaSemana}, {dia}__', inline=False)
 
             elif(diaDaProva-hoje).days <= 7 and (diaDaProva-hoje).days > 0:
                 dia = diaDaProva.strftime('%d/%m/%y')
                 diaDaSemana = diaSemana(diaDaProva.weekday())
-                embedProvas.add_field(name=f'{attribute}', value=f'->@everyone Prova de {attribute}, {diaDaSemana}, {dia} em **{(diaDaProva-hoje).days} dias**', inline=False)
+                embedProvas.add_field(name=f'{attribute}', value=f'->Prova de {attribute}, {diaDaSemana}, {dia} em **{(diaDaProva-hoje).days} dias**', inline=False)
 
-
+    await canalProvas.send('@everyone')
     await canalProvas.send(embed=embedProvas)
             
 
