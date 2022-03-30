@@ -1,5 +1,4 @@
 import datetime
-from email import message_from_binary_file
 import discord
 import json
 import random
@@ -20,19 +19,29 @@ locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 # importando respostas basicas = fala algo : responde algo
 
-data = open('links.json', "r")
+data = open('links.json', 'r')
 response_object = json.load(data)
 
-# importando o token por um json
+# importando configurações pessoais por um json
 
 with open('config.json', 'r') as conf:
     confs = json.load(conf)
     btoken = confs['token']
+    prefix = confs['prefix']
+    IDCanalProvas = confs['canalDeProvas']
+    testeID = confs['testeID']
 
-# colocando o prefixo no próprio arquivo, porque eu nao sei mexer no git
-prefix = '!'
-IDCanalProvas = 958058492550316113
-testeID = 236901700475027456
+avisosAutomaticos = True
+
+if btoken == '':
+    print('Sem token do Bot')
+    raise Exception('Sem token do Bot')
+if prefix == '':
+    prefix = '!'
+if IDCanalProvas == '':
+    avisosAutomaticos = False
+    print('Sem ID do canal para avisos automáticos, não haveram mensagens automáticas')
+
 
 # pemitindo o bot ver outras pessoas, e mais algumas coisas da API que eu com certeza entendo
 intents = discord.Intents.all()
@@ -77,8 +86,9 @@ async def on_ready():
     # nao rodar as mensagens de prova automaticas
     # se o host for windows
     # (provavelmente é teste)
-    if not plataformaWindows:
-        aviso_provas.start(IDCanalProvas) 
+    if not plataformaWindows and avisosAutomaticos:
+        pass
+    aviso_provas.start(IDCanalProvas) 
 
 @client.event
 async def on_message(message):
@@ -89,7 +99,7 @@ async def on_message(message):
     manda = lambda mens: message.channel.send(f'{mens}')
 
     if message.content.startswith(prefix):
-        comando, argumentos = trata_argumentos(message, 0)
+        comando, argumentos = trata_argumentos(message, False)
 
         if comando == 'ping':
             pingm = await manda('Ping?')
@@ -99,6 +109,7 @@ async def on_message(message):
             await manda(f'**{client.user}** \n !ping, !roleta (numero de balas), !comandos, !provas')
 
         elif comando == 'roleta':
+            comando, argumentos = trata_argumentos(message, True)
             if argumentos=="":
                 n = random.randint(0, 5)
                 if n == 0:
@@ -119,7 +130,19 @@ async def on_message(message):
                     await manda('Sup!')
             else:
                 n = random.randint(1, 6)
-                if n <= int(argumentos):
+                try:
+                    balas = int(argumentos)
+                except ValueError as ve:                
+                    await manda(f'Me fala quando conseguir colocar "{argumentos}" balas no revólver')
+                if balas < 0:
+                    await manda('Muito corajoso você')
+                elif balas == 0:
+                    await manda('Sobreviveu! Que surpresa né?')
+                elif balas > 6:
+                    await manda('Você é corajoso até demais')
+                elif balas == 6:
+                    await manda('Achei o suicida')
+                elif n <= balas:
                     await manda('Morreu!')
                 else:
                     await manda('Sobreviveu!')
@@ -181,7 +204,7 @@ async def aviso_provas(IDcanalProvas):
     provas = json.load(prov)
     prov.close()
 
-    canalProvas = client.get_channel(IDcanalProvas)
+    canalProvas = client.get_channel(int(IDcanalProvas))
 
     await canalProvas.purge(limit=2, bulk=False)
 

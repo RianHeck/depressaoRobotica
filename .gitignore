@@ -1,9 +1,10 @@
 .env
 .cpp
-config.json
+configMeu.json
 venv
 __pycache__
 .vscode
 .idea
 extras
 jogos
+*.txt
