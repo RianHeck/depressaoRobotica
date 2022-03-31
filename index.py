@@ -3,19 +3,11 @@ import discord
 import json
 import random
 from discord.ext import tasks
+from discord.ext import commands
 import locale
 from sys import platform
 
-# TENHO QUE REFATORAR TODO O CÓDIGO
-# ADICIONAR @commands E ESSAS COISAS
-# E VERIFICAR SE TEM PERMISSÃO PARA DELETAR MENSAGENS E TAL
-
-# não sei se ainda é necessário, mas vou deixar porque não faz tanto mal
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-# parar de usar locale, usar weekday e cadeia de ifs
-# https://stackoverflow.com/questions/34076198/how-do-i-convert-the-weekday-of-a-particular-date
-# tipo isso
-
 
 # importando respostas basicas = fala algo : responde algo
 
@@ -42,61 +34,113 @@ if IDCanalProvas == '':
     avisosAutomaticos = False
     print('Sem ID do canal para avisos automáticos, não haveram mensagens automáticas')
 
-
-# pemitindo o bot ver outras pessoas, e mais algumas coisas da API que eu com certeza entendo
-intents = discord.Intents.all()
-intents.members = True
-client = discord.Client(intents=intents)
-
-# funcao para tratar o input dos comandos, separando o prefixo dos comandos e dos argumentos(caso haja algum)
-def trata_argumentos(message, raw):
-    args = message.content[len(prefix):]
-    args2 = args.strip().split()
-
-    if raw:
-        argumentoslist = str(args2[1:])
-    else:
-        argumentoslist = str(args2[1:]).lower()
-
-    comandolist = str(args2[:1]).lower()
-    comando = "".join(str(x) for x in comandolist)[2:len(comandolist) - 2]
-    argumentos = "".join(str(x) for x in argumentoslist)[2:len(argumentoslist) - 2].replace("\'", "").replace(",", "")
-    return comando, argumentos
-
-
 def diaSemana(wDia):
     dias = {0: 'Segunda-feira', 1 : 'Terça-feira', 2 : 'Quarta-feira', 3 : 'Quinta-feira', 4 : 'Sexta-feira', 5 : 'Sábado', 6 : 'Domingo'}
     return dias[wDia]
 
 
-def plataformaWindows():
-    if platform.startswith("win32"):
-        return True
-    else:
-        return False
+# pemitindo o bot ver outras pessoas, e mais algumas coisas da API que eu com certeza entendo
+intents = discord.Intents.all()
+intents.members = True
+bot = commands.Bot(command_prefix=prefix, intents=intents)
 
-
-@client.event
+@bot.event
 async def on_ready():
-    print('Conectado como {0.user}'.format(client))
-    await client.change_presence(activity=discord.Game('"!comandos" para ajuda'))
-    # await client.change_presence(status=discord.Status.offline)
-    print('Bot foi iniciado, com {} usuários, em {} servers.' .format(len(client.users), len(client.guilds)))
+    print(f'Conectado como {bot.user}')
+    await bot.change_presence(activity=discord.Game('"!comandos" para ajuda'))
+  
+    print(f'Bot foi iniciado, com {len(bot.users)} usuários, em {len(bot.guilds)} servers.')
 
     # nao rodar as mensagens de prova automaticas
     # se o host for windows
     # (provavelmente é teste)
-    if not plataformaWindows and avisosAutomaticos:
-        pass
-    aviso_provas.start(IDCanalProvas) 
 
+    
+@bot.command()
+async def ping(ctx):
+    pingm = await ctx.channel.send('Ping?')
+    await pingm.edit(content = 'Pong! Latência de {0} ms. Latência de API {1} ms'.format(str(pingm.created_at - ctx.message.created_at)[8:-3], round(bot.latency*1000)))
+
+@bot.command()
+async def roleta(ctx, *, argumentos=''):
+    
+    if argumentos == '':
+        n = random.randint(0, 5)
+        if n == 0:
+            await ctx.reply('Morreu!')
+        else:
+            await ctx.reply('Sobreviveu!')
+    
+    else:
+        try:
+            balas = int(argumentos)
+        except ValueError as ve: 
+            await ctx.reply(f'Me fala quando conseguir colocar "{argumentos}" balas no revólver')
+            return
+
+        n = random.randint(1, 6)
+        if balas < 0:
+            await ctx.reply('Muito corajoso você')
+        elif balas == 0:
+            await ctx.reply('Sobreviveu! Que surpresa né?')
+        elif balas > 6:
+            await ctx.reply('Você é corajoso até demais')
+        elif balas == 6:
+            await ctx.reply('Achei o suicida')
+        elif n <= balas:
+            await ctx.reply('Morreu!')
+        else:
+            await ctx.reply('Sobreviveu!')
+
+@bot.command()
+async def comandos(ctx):
+    await ctx.reply(f'**{bot.user}**\n!ping, !roleta (numero de balas), !comandos, !provas')
+
+
+@bot.command()
+async def provas(ctx):
+    prov = open('provas.json', "r")
+    provas = json.load(prov)
+    prov.close()
+
+    await ctx.message.delete()
+    
+    hoje = datetime.date.today()
+    hojeString = datetime.date.today().strftime('%d/%m/%y')
+    diaDaSemana = hoje.weekday()
+
+    embedProvas = discord.Embed(
+    title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para a semana', color=0x336EFF)
+
+    embedProvas.set_image(url='https://i.imgur.com/7nqUbE9.gif')
+
+    for attribute in provas:
+            value = provas[attribute]
+            diaDaProva = datetime.date.fromisoformat(value)
+
+            if(diaDaProva-hoje).days == 0:
+                embedProvas.set_image(url='https://i.imgur.com/kaAhqqC.gif')
+                embedProvas.color = 0xFF0000
+                dia = diaDaProva.strftime('%d/%m/%y')
+                diaDaSemana = diaSemana(diaDaProva.weekday())
+                embedProvas.add_field(name=f'•{attribute}', value=f'__->**É HOJE FIOTE** PROVA DE {attribute}, {diaDaSemana}, {dia}__', inline=False)
+            
+            elif(diaDaProva-hoje).days <= 7 and (diaDaProva-hoje).days > 0:
+                dia = diaDaProva.strftime('%d/%m/%y')
+                diaDaSemana = diaSemana(diaDaProva.weekday())
+                embedProvas.add_field(name=f'•{attribute}', value=f'->Prova de {attribute}, {diaDaSemana}, {dia} em **{(diaDaProva-hoje).days} dias**', inline=False)
+
+
+    mensagemJunto = await ctx.channel.send(f'{ctx.author.mention}')
+    mensagemEmbed = await ctx.channel.send(embed=embedProvas)
+    await mensagemJunto.delete(delay=60)
+    await mensagemEmbed.delete(delay=60)
+
+"""
 @client.event
 async def on_message(message):
     if message.author.bot:
         return
-
-    # pequena funcao anônima para encurtar a mesma funcao de sempre
-    manda = lambda mens: message.channel.send(f'{mens}')
 
     if message.content.startswith(prefix):
         comando, argumentos = trata_argumentos(message, False)
@@ -197,7 +241,8 @@ async def on_message(message):
     if message.content in response_object:
         await manda(response_object[message.content])
 
-
+"""
+"""
 @tasks.loop(seconds=60*60*24) # a cada 1 dia
 async def aviso_provas(IDcanalProvas):
     prov = open('provas.json', "r")
@@ -237,6 +282,6 @@ async def aviso_provas(IDcanalProvas):
     await canalProvas.send('@everyone')
     await canalProvas.send(embed=embedProvas)
             
-
-client.run(btoken)
+"""
+bot.run(btoken)
 
