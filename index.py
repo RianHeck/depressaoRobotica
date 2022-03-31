@@ -53,15 +53,16 @@ bot = commands.Bot(command_prefix=prefix, intents=intents)
 @bot.event
 async def on_ready():
     
-    canal = bot.get_channel(int(IDCanalProvas))
-    if canal in bot.get_all_channels():
-        if canal.permissions_for(canal.guild.me).read_messages and canal.permissions_for(canal.guild.me).send_messages:
-            if not plataformaWindows and avisosAutomaticos:
-                aviso_provas.start(IDCanalProvas)
+    if avisosAutomaticos:
+        canal = bot.get_channel(int(IDCanalProvas))
+        if canal in bot.get_all_channels():
+            if canal.permissions_for(canal.guild.me).read_messages and canal.permissions_for(canal.guild.me).send_messages:
+                if not plataformaWindows:
+                    aviso_provas.start(IDCanalProvas)
+            else:
+                print('Não consigo mandar mesnagens no canal de aviso de provas')
         else:
-            print('Não consigo mandar mesnagens no canal de aviso de provas')
-    else:
-        print('Não encontrei o canal indicado para os avisos de provas')
+            print('Não encontrei o canal indicado para os avisos de provas')
     
     print(f'Conectado como {bot.user}')
     await bot.change_presence(activity=discord.Game('"!comandos" para ajuda'))
@@ -155,6 +156,11 @@ async def provas(ctx):
     await mensagemJunto.delete(delay=60)
     await mensagemEmbed.delete(delay=60)
 
+
+@bot.event
+async def on_message(ctx):
+    if ctx.content.lower().__contains__('bitches'):
+        await ctx.channel.send("  ⣞⢽⢪⢣⢣⢣⢫⡺⡵⣝⡮⣗⢷⢽⢽⢽⣮⡷⡽⣜⣜⢮⢺⣜⢷⢽⢝⡽⣝\n⠸⡸⠜⠕⠕⠁⢁⢇⢏⢽⢺⣪⡳⡝⣎⣏⢯⢞⡿⣟⣷⣳⢯⡷⣽⢽⢯⣳⣫⠇\n  ⠀⠀⢀⢀⢄⢬⢪⡪⡎⣆⡈⠚⠜⠕⠇⠗⠝⢕⢯⢫⣞⣯⣿⣻⡽⣏⢗⣗⠏⠀\n   ⠀⠪⡪⡪⣪⢪⢺⢸⢢⢓⢆⢤⢀⠀⠀⠀⠀⠈⢊⢞⡾⣿⡯⣏⢮⠷⠁\n  ⠀⠀⠀⠈⠊⠆⡃⠕⢕⢇⢇⢇⢇⢇⢏⢎⢎⢆⢄⠀⢑⣽⣿⢝⠲⠉\n  ⠀⠀⠀⠀⠀⡿⠂⠠⠀⡇⢇⠕⢈⣀⠀⠁⠡⠣⡣⡫⣂⣿⠯⢪⠰⠂\n  ⠀⠀⠀⠀⡦⡙⡂⢀⢤⢣⠣⡈⣾⡃⠠⠄⠀⡄⢱⣌⣶⢏⢊⠂\n  ⠀⠀⠀⠀⢝⡲⣜⡮⡏⢎⢌⢂⠙⠢⠐⢀⢘⢵⣽⣿⡿⠁⠁\n  ⠀⠀⠀⠀⠨⣺⡺⡕⡕⡱⡑⡆⡕⡅⡕⡜⡼⢽⡻⠏\n  ⠀⠀⠀⠀⣼⣳⣫⣾⣵⣗⡵⡱⡡⢣⢑⢕⢜⢕⡝\n  ⠀⠀⠀⣴⣿⣾⣿⣿⣿⡿⡽⡑⢌⠪⡢⡣⣣⡟\n  ⠀⠀⠀⡟⡾⣿⢿⢿⢵⣽⣾⣼⣘⢸⢸⣞⡟\n  ⠀⠀⠀⠀⠁⠇⠡⠩⡫⢿⣝⡻⡮⣒⢽⠋⠀")
 
 @tasks.loop(seconds=60*60*24) # a cada 1 dia
 async def aviso_provas(IDcanalProvas):
