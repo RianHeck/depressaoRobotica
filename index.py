@@ -38,6 +38,12 @@ def diaSemana(wDia):
     dias = {0: 'Segunda-feira', 1 : 'Terça-feira', 2 : 'Quarta-feira', 3 : 'Quinta-feira', 4 : 'Sexta-feira', 5 : 'Sábado', 6 : 'Domingo'}
     return dias[wDia]
 
+def plataformaWindows():
+    if platform.startswith("win32"):
+        return True
+    else:
+        return False
+
 
 # pemitindo o bot ver outras pessoas, e mais algumas coisas da API que eu com certeza entendo
 intents = discord.Intents.all()
@@ -46,6 +52,17 @@ bot = commands.Bot(command_prefix=prefix, intents=intents)
 
 @bot.event
 async def on_ready():
+    
+    canal = bot.get_channel(int(IDCanalProvas))
+    if canal in bot.get_all_channels():
+        if canal.permissions_for(canal.guild.me).read_messages and canal.permissions_for(canal.guild.me).send_messages:
+            if not plataformaWindows and avisosAutomaticos:
+                aviso_provas.start(IDCanalProvas)
+        else:
+            print('Não consigo mandar mesnagens no canal de aviso de provas')
+    else:
+        print('Não encontrei o canal indicado para os avisos de provas')
+    
     print(f'Conectado como {bot.user}')
     await bot.change_presence(activity=discord.Game('"!comandos" para ajuda'))
   
@@ -54,6 +71,8 @@ async def on_ready():
     # nao rodar as mensagens de prova automaticas
     # se o host for windows
     # (provavelmente é teste)
+    if not plataformaWindows and avisosAutomaticos:
+        aviso_provas.start(IDCanalProvas)
 
     
 @bot.command()
@@ -62,35 +81,35 @@ async def ping(ctx):
     await pingm.edit(content = 'Pong! Latência de {0} ms. Latência de API {1} ms'.format(str(pingm.created_at - ctx.message.created_at)[8:-3], round(bot.latency*1000)))
 
 @bot.command()
-async def roleta(ctx, *, argumentos=''):
+async def roleta(ctx, *, argumentos='1'):
     
-    if argumentos == '':
-        n = random.randint(0, 5)
-        if n == 0:
-            await ctx.reply('Morreu!')
-        else:
-            await ctx.reply('Sobreviveu!')
-    
-    else:
-        try:
-            balas = int(argumentos)
-        except ValueError as ve: 
-            await ctx.reply(f'Me fala quando conseguir colocar "{argumentos}" balas no revólver')
-            return
+    heya = bot.get_emoji(895327381437448204)
+    gun = bot.get_emoji(895329552518217798)
 
-        n = random.randint(1, 6)
-        if balas < 0:
-            await ctx.reply('Muito corajoso você')
-        elif balas == 0:
-            await ctx.reply('Sobreviveu! Que surpresa né?')
-        elif balas > 6:
-            await ctx.reply('Você é corajoso até demais')
-        elif balas == 6:
-            await ctx.reply('Achei o suicida')
-        elif n <= balas:
-            await ctx.reply('Morreu!')
-        else:
-            await ctx.reply('Sobreviveu!')
+    # if gun not in ctx.guild.emojis:
+    #     gun = ':gun:'
+    # if heya not in ctx.guild.emojis:
+    #     heya = ':smiley:'
+
+    try:
+        balas = int(argumentos)
+    except ValueError: 
+        await ctx.reply(f'Me fala quando conseguir colocar "{argumentos}" balas no revólver')
+        return
+
+    n = random.randint(1, 6)
+    if balas < 0:
+        await ctx.reply('Muito corajoso você')
+    elif balas == 0:
+        await ctx.reply(f'{heya} Sobreviveu! Que surpresa né?')
+    elif balas > 6:
+        await ctx.reply('Você é corajoso até demais')
+    elif balas == 6:
+        await ctx.reply(f'{gun} Morreu! Achei o suicida')
+    elif n <= balas:
+        await ctx.reply(f'{gun} Morreu!')
+    else:
+        await ctx.reply(f'{heya} Sobreviveu!')
 
 @bot.command()
 async def comandos(ctx):
@@ -136,112 +155,6 @@ async def provas(ctx):
     await mensagemJunto.delete(delay=60)
     await mensagemEmbed.delete(delay=60)
 
-"""
-@client.event
-async def on_message(message):
-    if message.author.bot:
-        return
-
-    if message.content.startswith(prefix):
-        comando, argumentos = trata_argumentos(message, False)
-
-        if comando == 'ping':
-            pingm = await manda('Ping?')
-            await pingm.edit(content = 'Pong! Latência de {0} ms. Latência de API {1} ms'.format(str(pingm.created_at - message.created_at)[8:-3], round(client.latency*1000)))
-
-        elif comando == 'comandos':
-            await manda(f'**{client.user}** \n !ping, !roleta (numero de balas), !comandos, !provas')
-
-        elif comando == 'roleta':
-            comando, argumentos = trata_argumentos(message, True)
-            if argumentos=="":
-                n = random.randint(0, 5)
-                if n == 0:
-                    await manda('Morreu!')
-                else:
-                    await manda('Sobreviveu!')
-            elif(argumentos=="role"):
-                n = random.randint(0, 4)
-                if n == 0:
-                    await manda('Top!')
-                elif n == 1:
-                    await manda('Jungle!')
-                elif n == 2:
-                    await manda('Mid!')
-                elif n == 3:
-                    await manda('Adc!')
-                elif n == 4:
-                    await manda('Sup!')
-            else:
-                n = random.randint(1, 6)
-                try:
-                    balas = int(argumentos)
-                except ValueError as ve:                
-                    await manda(f'Me fala quando conseguir colocar "{argumentos}" balas no revólver')
-                if balas < 0:
-                    await manda('Muito corajoso você')
-                elif balas == 0:
-                    await manda('Sobreviveu! Que surpresa né?')
-                elif balas > 6:
-                    await manda('Você é corajoso até demais')
-                elif balas == 6:
-                    await manda('Achei o suicida')
-                elif n <= balas:
-                    await manda('Morreu!')
-                else:
-                    await manda('Sobreviveu!')
-
-        elif comando == 'provas':
-            prov = open('provas.json', "r")
-            provas = json.load(prov)
-            prov.close()
-
-            await message.delete()
-            
-            hoje = datetime.date.today()
-            hojeString = datetime.date.today().strftime('%d/%m/%y')
-            diaDaSemana = hoje.weekday()
-
-            embedProvas = discord.Embed(
-            title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para a semana', color=0x336EFF)
-
-            embedProvas.set_image(url='https://i.imgur.com/7nqUbE9.gif')
-
-            for attribute in provas:
-                    value = provas[attribute]
-                    diaDaProva = datetime.date.fromisoformat(value)
-
-                    if(diaDaProva-hoje).days == 0:
-                        embedProvas.set_image(url='https://i.imgur.com/kaAhqqC.gif')
-                        embedProvas.color = 0xFF0000
-                        dia = diaDaProva.strftime('%d/%m/%y')
-                        diaDaSemana = diaSemana(diaDaProva.weekday())
-                        embedProvas.add_field(name=f'•{attribute}', value=f'__->**É HOJE FIOTE** PROVA DE {attribute}, {diaDaSemana}, {dia}__', inline=False)
-                    
-                    elif(diaDaProva-hoje).days <= 7 and (diaDaProva-hoje).days > 0:
-                        dia = diaDaProva.strftime('%d/%m/%y')
-                        diaDaSemana = diaSemana(diaDaProva.weekday())
-                        embedProvas.add_field(name=f'•{attribute}', value=f'->Prova de {attribute}, {diaDaSemana}, {dia} em **{(diaDaProva-hoje).days} dias**', inline=False)
-
-
-            mensagemJunto = await manda(f'{message.author.mention}')
-            mensagemEmbed = await message.channel.send(embed=embedProvas)
-            await mensagemJunto.delete(delay=60)
-            await mensagemEmbed.delete(delay=60)
-
-        elif comando == 'deleta' and message.author.id == testeID:
-            canalProvas = client.get_channel(IDCanalProvas)
-            await canalProvas.purge(limit=int(argumentos))
-
-        # SE QUISER ADICIONAR ALGUM COMANDO:
-        # elif(comando == 'nome do comando' and argumentos == 'argumentos se tiver'):
-        # o comando await manda('') manda uma mensagem
-        # e é isso, não é muito complicado, só desorganizado
-    
-    if message.content in response_object:
-        await manda(response_object[message.content])
-
-"""
 
 @tasks.loop(seconds=60*60*24) # a cada 1 dia
 async def aviso_provas(IDcanalProvas):
