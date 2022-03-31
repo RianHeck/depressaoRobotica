@@ -242,14 +242,14 @@ async def on_message(message):
         await manda(response_object[message.content])
 
 """
-"""
+
 @tasks.loop(seconds=60*60*24) # a cada 1 dia
 async def aviso_provas(IDcanalProvas):
     prov = open('provas.json', "r")
     provas = json.load(prov)
     prov.close()
 
-    canalProvas = client.get_channel(int(IDcanalProvas))
+    canalProvas = bot.get_channel(int(IDcanalProvas))
 
     await canalProvas.purge(limit=2, bulk=False)
 
@@ -281,7 +281,6 @@ async def aviso_provas(IDcanalProvas):
 
     await canalProvas.send('@everyone')
     await canalProvas.send(embed=embedProvas)
-            
-"""
+
 bot.run(btoken)
 
