@@ -6,6 +6,7 @@ from discord.ext import tasks
 from discord.ext import commands
 import locale
 from sys import platform
+import os
 
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
@@ -22,6 +23,9 @@ with open('config.json', 'r') as conf:
     prefix = confs['prefix']
     IDCanalProvas = confs['canalDeProvas']
     testeID = confs['testeID']
+
+if btoken == '':
+    btoken = os.getenv('token')
 
 avisosAutomaticos = True
 
@@ -44,6 +48,11 @@ def plataformaWindows():
     else:
         return False
 
+def leRoles():
+    with open('roles.txt', 'r+', encoding='utf-8') as f:
+        roles = f.read()
+        return roles.split(',')
+        
 
 # pemitindo o bot ver outras pessoas, e mais algumas coisas da API que eu com certeza entendo
 intents = discord.Intents.all()
@@ -65,16 +74,19 @@ async def on_ready():
             print('Não encontrei o canal indicado para os avisos de provas')
     
     print(f'Conectado como {bot.user}')
-    await bot.change_presence(activity=discord.Game('"!comandos" para ajuda'))
+    await bot.change_presence(activity=discord.Game(f'"{prefix}comandos" para ajuda'))
   
     print(f'Bot foi iniciado, com {len(bot.users)} usuários, em {len(bot.guilds)} servers.')
 
     # nao rodar as mensagens de prova automaticas
     # se o host for windows
     # (provavelmente é teste)
-    if not plataformaWindows and avisosAutomaticos:
-        aviso_provas.start(IDCanalProvas)
+    # if not plataformaWindows and avisosAutomaticos:
+    #     aviso_provas.start(IDCanalProvas)
 
+# @bot.event
+# async def on_typing(ch, us, wh):
+#     await ch.send(f'FALA LOGO {us.mention}')
     
 @bot.command()
 async def ping(ctx):
@@ -114,7 +126,37 @@ async def roleta(ctx, *, argumentos='1'):
 
 @bot.command()
 async def comandos(ctx):
-    await ctx.reply(f'**{bot.user}**\n!ping, !roleta (numero de balas), !comandos, !provas')
+    await ctx.reply(f'**{bot.user}**\n{prefix}ping, {prefix}roleta (numero de balas), {prefix}comandos, {prefix}provas')
+
+# @bot.command()
+# async def adiciona(ctx, roleNova):
+
+#     roles = leRoles()
+#     if roles == ['']:
+#         roles.clear()
+#     roles.append(roleNova)
+
+#     roles = ','.join(roles)
+
+#     with open('roles.txt', 'r+', encoding='utf-8') as f:
+#         f.seek(0)
+#         f.write(roles)
+#     await ctx.channel.send(leRoles())
+
+# @bot.command()
+# async def remove(ctx, roleRemove):
+
+#     roles = leRoles()
+#     if roleRemove in roles:
+#         roles.remove(roleRemove)
+
+#     roles = ','.join(roles)
+#     print(roles)
+
+#     with open('roles.txt', 'r+', encoding='utf-8') as f:
+#         f.seek(0)
+#         f.write(roles)
+#     await ctx.channel.send(leRoles())    
 
 
 @bot.command()
@@ -123,7 +165,9 @@ async def provas(ctx):
     provas = json.load(prov)
     prov.close()
 
-    await ctx.message.delete()
+
+    if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+        await ctx.message.delete()
     
     hoje = datetime.date.today()
     hojeString = datetime.date.today().strftime('%d/%m/%y')
@@ -156,11 +200,29 @@ async def provas(ctx):
     await mensagemJunto.delete(delay=60)
     await mensagemEmbed.delete(delay=60)
 
+# @bot.command
+# async def reseta(ctx):
+
+#     # depois revisitar esse codigo, ele nao eh amigavel com varios servers
+#     # especificar o server e canal
+#     if ctx.author.id == testeID:
+#         aviso_provas.cancel()
+#         aviso_provas.start(IDCanalProvas)
+#     else:
+#         ctx.reply('você não possui permissão para usar esse comando!')
 
 @bot.event
 async def on_message(ctx):
+    if ctx.author.bot:
+        return
+
     if ctx.content.lower().__contains__('bitches'):
         await ctx.channel.send("  ⣞⢽⢪⢣⢣⢣⢫⡺⡵⣝⡮⣗⢷⢽⢽⢽⣮⡷⡽⣜⣜⢮⢺⣜⢷⢽⢝⡽⣝\n⠸⡸⠜⠕⠕⠁⢁⢇⢏⢽⢺⣪⡳⡝⣎⣏⢯⢞⡿⣟⣷⣳⢯⡷⣽⢽⢯⣳⣫⠇\n  ⠀⠀⢀⢀⢄⢬⢪⡪⡎⣆⡈⠚⠜⠕⠇⠗⠝⢕⢯⢫⣞⣯⣿⣻⡽⣏⢗⣗⠏⠀\n   ⠀⠪⡪⡪⣪⢪⢺⢸⢢⢓⢆⢤⢀⠀⠀⠀⠀⠈⢊⢞⡾⣿⡯⣏⢮⠷⠁\n  ⠀⠀⠀⠈⠊⠆⡃⠕⢕⢇⢇⢇⢇⢇⢏⢎⢎⢆⢄⠀⢑⣽⣿⢝⠲⠉\n  ⠀⠀⠀⠀⠀⡿⠂⠠⠀⡇⢇⠕⢈⣀⠀⠁⠡⠣⡣⡫⣂⣿⠯⢪⠰⠂\n  ⠀⠀⠀⠀⡦⡙⡂⢀⢤⢣⠣⡈⣾⡃⠠⠄⠀⡄⢱⣌⣶⢏⢊⠂\n  ⠀⠀⠀⠀⢝⡲⣜⡮⡏⢎⢌⢂⠙⠢⠐⢀⢘⢵⣽⣿⡿⠁⠁\n  ⠀⠀⠀⠀⠨⣺⡺⡕⡕⡱⡑⡆⡕⡅⡕⡜⡼⢽⡻⠏\n  ⠀⠀⠀⠀⣼⣳⣫⣾⣵⣗⡵⡱⡡⢣⢑⢕⢜⢕⡝\n  ⠀⠀⠀⣴⣿⣾⣿⣿⣿⡿⡽⡑⢌⠪⡢⡣⣣⡟\n  ⠀⠀⠀⡟⡾⣿⢿⢿⢵⣽⣾⣼⣘⢸⢸⣞⡟\n  ⠀⠀⠀⠀⠁⠇⠡⠩⡫⢿⣝⡻⡮⣒⢽⠋⠀")
+    
+    if ctx.content in response_object:
+        await ctx.channel.send(response_object[ctx.content])
+    
+    await bot.process_commands(ctx)
 
 @tasks.loop(seconds=60*60*24) # a cada 1 dia
 async def aviso_provas(IDcanalProvas):
@@ -170,6 +232,7 @@ async def aviso_provas(IDcanalProvas):
 
     canalProvas = bot.get_channel(int(IDcanalProvas))
 
+    # verificar se as mensagens sao do bot antes de deletar
     await canalProvas.purge(limit=2, bulk=False)
 
     hoje = datetime.date.today()
