@@ -87,8 +87,8 @@ async def on_ready():
     # se o host for windows
     # (provavelmente é teste)
     if not plataformaWindows and avisosAutomaticos:
-        pass
-    aviso_provas.start(IDCanalProvas) 
+        aviso_provas.start(IDCanalProvas)
+     
 
 @client.event
 async def on_message(message):
