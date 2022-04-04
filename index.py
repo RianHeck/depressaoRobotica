@@ -74,13 +74,7 @@ async def on_ready():
     await bot.change_presence(activity=discord.Game(f'"{prefix}comandos" para ajuda'))
   
     print(f'Bot foi iniciado, com {len(bot.users)} usuários, em {len(bot.guilds)} servers.')
-
-    # nao rodar as mensagens de prova automaticas
-    # se o host for windows
-    # (provavelmente é teste)
-    # if not plataformaWindows and avisosAutomaticos:
-    #     aviso_provas.start(IDCanalProvas)
-
+     
 # @bot.event
 # async def on_typing(ch, us, wh):
 #     await ch.send(f'FALA LOGO {us.mention}')
