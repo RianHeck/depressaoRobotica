@@ -24,14 +24,11 @@ with open('config.json', 'r') as conf:
     IDCanalProvas = confs['canalDeProvas']
     testeID = confs['testeID']
 
-if btoken == '':
-    btoken = os.getenv('token')
-
 avisosAutomaticos = True
 
-if btoken == '':
+if btoken == '' or btoken == None:
     print('Sem token do Bot')
-    raise Exception('Sem token do Bot')
+    raise RuntimeError('Sem token do Bot')
 if prefix == '':
     prefix = '!'
 if IDCanalProvas == '':
@@ -182,6 +179,10 @@ async def provas(ctx):
             value = provas[attribute]
             diaDaProva = datetime.date.fromisoformat(value)
 
+            if(diaDaProva-hoje).days == 1:
+                embedProvas.set_image(url='https://i.imgur.com/AQhq1Mo.png')
+                embedProvas.color = 0xFFFF00
+
             if(diaDaProva-hoje).days == 0:
                 embedProvas.set_image(url='https://i.imgur.com/kaAhqqC.gif')
                 embedProvas.color = 0xFF0000
@@ -221,6 +222,9 @@ async def on_message(ctx):
     
     if ctx.content in response_object:
         await ctx.channel.send(response_object[ctx.content])
+
+    if bot.user.mentioned_in(ctx):
+        await ctx.reply(f'**{bot.user}**\n{prefix}ping, {prefix}roleta (numero de balas), {prefix}comandos, {prefix}provas')
     
     await bot.process_commands(ctx)
 
@@ -248,6 +252,10 @@ async def aviso_provas(IDcanalProvas):
             value = provas[attribute]
 
             diaDaProva = datetime.date.fromisoformat(value)
+
+            if(diaDaProva-hoje).days == 1:
+                embedProvas.set_image(url='https://i.imgur.com/AQhq1Mo.png')
+                embedProvas.color = 0xFFFF00
 
             if(diaDaProva-hoje).days == 0:
                 embedProvas.set_image(url='https://i.imgur.com/kaAhqqC.gif')
