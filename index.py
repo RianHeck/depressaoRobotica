@@ -59,6 +59,7 @@ def is_connected(ctx):
     voice_client = get(ctx.bot.voice_clients, guild=ctx.guild)
     return voice_client and voice_client.is_connected()
 
+
 # pemitindo o bot ver outras pessoas, e mais algumas coisas da API que eu com certeza entendo
 intents = discord.Intents.all()
 intents.members = True
@@ -82,7 +83,26 @@ async def on_ready():
     await bot.change_presence(activity=discord.Game(f'"{prefix}comandos" para ajuda'))
   
     print(f'Bot foi iniciado, com {len(bot.users)} usuários, em {len(bot.guilds)} servers.')
-     
+
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    
+    if member.id != bot.user.id:
+        return
+
+    elif after.channel is not None:
+        voice = after.channel.guild.voice_client
+        time = 0
+        while True:
+            await asyncio.sleep(1)
+            time = time + 1
+            if voice.is_playing() and not voice.is_paused():
+                time = 0
+            if time == 300:
+                await voice.disconnect()
+            if not voice.is_connected():
+                break
 # @bot.event
 # async def on_typing(ch, us, wh):
 #     await ch.send(f'FALA LOGO {us.mention}')
@@ -144,6 +164,14 @@ async def carrega(ctx):
         await roletaVC.move_to(ctx.author.voice.channel)
 
     roletaVC.play(discord.FFmpegPCMAudio("audio/reload.mp3"))
+
+@bot.command()
+async def descarrega(ctx):
+
+    if is_connected(ctx):
+        await ctx.message.guild.voice_client.disconnect()
+    else:
+        await ctx.channel.send('Não estou conectado em nenhum canal')
 
 
 @bot.command()
