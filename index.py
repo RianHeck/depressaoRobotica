@@ -4,9 +4,13 @@ import json
 import random
 from discord.ext import tasks
 from discord.ext import commands
+from discord.utils import get
 import locale
 from sys import platform
 import os
+import asyncio
+
+from matplotlib.pyplot import disconnect
 
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
@@ -49,7 +53,11 @@ def leRoles():
     with open('roles.txt', 'r+', encoding='utf-8') as f:
         roles = f.read()
         return roles.split(',')
-        
+
+
+def is_connected(ctx):
+    voice_client = get(ctx.bot.voice_clients, guild=ctx.guild)
+    return voice_client and voice_client.is_connected()
 
 # pemitindo o bot ver outras pessoas, e mais algumas coisas da API que eu com certeza entendo
 intents = discord.Intents.all()
@@ -117,7 +125,77 @@ async def roleta(ctx, *, argumentos='1'):
 
 @bot.command()
 async def comandos(ctx):
-    await ctx.reply(f'**{bot.user}**\n{prefix}ping, {prefix}roleta (numero de balas), {prefix}comandos, {prefix}provas')
+    await ctx.reply(f'**{bot.user}**\n{prefix}ping, {prefix}roleta (numero de balas), {prefix}comandos, {prefix}provas, {prefix}roletav')
+
+@bot.command()
+async def carrega(ctx):
+
+    if ctx.author.voice is None:
+            await ctx.channel.send("Você não está conectado em nenhum canal de voz")
+            return
+
+    if not is_connected(ctx):
+        # print('não conectado\n\n\n')
+        roletaVC = await ctx.author.voice.channel.connect()
+        await ctx.channel.send(f'Conectado em {roletaVC.channel}.')
+
+    else:
+        roletaVC = ctx.message.guild.voice_client
+        await roletaVC.move_to(ctx.author.voice.channel)
+
+    roletaVC.play(discord.FFmpegPCMAudio("audio/reload.mp3"))
+
+
+@bot.command()
+async def roletav(ctx, *, argumentos='1'):
+
+    await ctx.message.delete()
+
+    if not ctx.message.guild.voice_client:
+        await ctx.channel.send(f'Não estou conectado a nenhum canal, use {prefix}carrega')
+        return
+
+    if ctx.author.voice is None:
+            await ctx.channel.send("Você não está conectado em nenhum canal de voz")
+            return
+
+    roletaVC = ctx.message.guild.voice_client
+
+    if ctx.author.voice.channel == ctx.message.guild.voice_client.channel:
+        if ctx.voice_client.is_playing():
+            await ctx.reply('Calma, tem bala pra todo mundo!:)')
+        else:
+            try:
+                balas = int(argumentos)
+            except ValueError: 
+                await ctx.reply(f'Me fala quando conseguir colocar "{argumentos}" balas no revólver')
+                return
+
+            n = random.randint(1, 6)
+            if balas < 0:
+                roletaVC.play(discord.FFmpegPCMAudio("audio/uepa.mp3"))
+                await asyncio.sleep(1)
+                await ctx.reply('Muito corajoso você')
+            elif balas == 0:
+                roletaVC.play(discord.FFmpegPCMAudio("audio/uepa.mp3"))
+            elif balas > 6:
+                await ctx.reply('Você é corajoso até demais')
+            elif balas == 6:
+                roletaVC.play(discord.FFmpegPCMAudio("audio/tiro.mp3"))
+                await asyncio.sleep(1)
+                await ctx.message.author.move_to(None)
+            elif n <= balas:
+                roletaVC.play(discord.FFmpegPCMAudio("audio/tiro.mp3"))
+                await asyncio.sleep(1)
+                await ctx.message.author.move_to(None)
+            else:
+                roletaVC.play(discord.FFmpegPCMAudio("audio/falha.mp3"))
+                await asyncio.sleep(1.5)
+                roletaVC.play(discord.FFmpegPCMAudio("audio/tambor.mp3"))
+
+    else:
+        await roletaVC.move_to(ctx.author.voice.channel)
+
 
 # @bot.command()
 # async def adiciona(ctx, roleNova):
@@ -218,7 +296,7 @@ async def on_message(ctx):
         await ctx.channel.send(response_object[ctx.content])
 
     if bot.user.mentioned_in(ctx):
-        await ctx.reply(f'**{bot.user}**\n{prefix}ping, {prefix}roleta (numero de balas), {prefix}comandos, {prefix}provas')
+        comandos(ctx)
     
     await bot.process_commands(ctx)
 
