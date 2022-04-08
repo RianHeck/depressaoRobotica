@@ -100,8 +100,9 @@ async def on_voice_state_update(member, before, after):
             time = time + 1
             if voice.is_playing() and not voice.is_paused():
                 time = 0
-            if time == 300:
+            if time >= 6:
                 await voice.disconnect()
+                await canalConecta.send('Cansei de segurar o revólver')
             if not voice.is_connected():
                 break
 # @bot.event
@@ -158,11 +159,12 @@ async def carrega(ctx):
             await ctx.channel.send("Você não está conectado em nenhum canal de voz")
             return
 
+    global canalConecta
+    canalConecta = ctx.channel
+
     if not is_connected(ctx):
-        # print('não conectado\n\n\n')
         roletaVC = await ctx.author.voice.channel.connect()
         conectado = await ctx.channel.send(f'Conectado em {roletaVC.channel}')
-        await conectado.delete(delay=10)
 
     else:
         roletaVC = ctx.message.guild.voice_client
