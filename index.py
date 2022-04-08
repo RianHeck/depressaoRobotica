@@ -100,8 +100,9 @@ async def on_voice_state_update(member, before, after):
             time = time + 1
             if voice.is_playing() and not voice.is_paused():
                 time = 0
-            if time == 300:
+            if time >= 300:
                 await voice.disconnect()
+                await canalConectado.send('Cansei de segurar o revólver')
             if not voice.is_connected():
                 break
 # @bot.event
@@ -148,7 +149,7 @@ async def roleta(ctx, *, argumentos='1'):
 async def comandos(ctx):
     await ctx.reply(f'**{bot.user}**\n{prefix}ping, {prefix}roleta (numero de balas), {prefix}comandos, {prefix}provas, {prefix}roletav')
 
-@bot.command()
+@bot.command(aliases=['carregar'])
 async def carrega(ctx):
 
     if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
@@ -158,11 +159,13 @@ async def carrega(ctx):
             await ctx.channel.send("Você não está conectado em nenhum canal de voz")
             return
 
+    global canalConectado
+    canalConectado = ctx.channel
+
     if not is_connected(ctx):
         # print('não conectado\n\n\n')
         roletaVC = await ctx.author.voice.channel.connect()
-        conectado = await ctx.channel.send(f'Conectado em {roletaVC.channel}')
-        await conectado.delete(delay=10)
+        await ctx.channel.send(f'Conectado em {roletaVC.channel}')
 
     else:
         roletaVC = ctx.message.guild.voice_client
@@ -170,7 +173,7 @@ async def carrega(ctx):
 
     roletaVC.play(discord.FFmpegPCMAudio("audio/reload.mp3"))
 
-@bot.command()
+@bot.command(aliases=['descarregar'])
 async def descarrega(ctx):
 
     if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
@@ -182,7 +185,7 @@ async def descarrega(ctx):
         await ctx.channel.send('Não estou conectado em nenhum canal')
 
 
-@bot.command()
+@bot.command(aliases=['r'])
 async def roletav(ctx, *, argumentos='1'):
 
     if not ctx.message.guild.voice_client:
