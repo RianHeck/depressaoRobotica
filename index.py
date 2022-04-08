@@ -163,7 +163,6 @@ async def carrega(ctx):
     canalConectado = ctx.channel
 
     if not is_connected(ctx):
-        # print('não conectado\n\n\n')
         roletaVC = await ctx.author.voice.channel.connect()
         await ctx.channel.send(f'Conectado em {roletaVC.channel}')
 
