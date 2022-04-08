@@ -5,12 +5,12 @@ import random
 from discord.ext import tasks
 from discord.ext import commands
 from discord.utils import get
+from discord_slash import SlashCommand, SlashContext
+from discord_slash.utils.manage_commands import create_choice, create_option
 import locale
 from sys import platform
 import os
 import asyncio
-
-from matplotlib.pyplot import disconnect
 
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
@@ -64,6 +64,7 @@ def is_connected(ctx):
 intents = discord.Intents.all()
 intents.members = True
 bot = commands.Bot(command_prefix=prefix, intents=intents)
+slash = SlashCommand(bot, sync_commands=True)
 
 @bot.event
 async def on_ready():
@@ -150,6 +151,9 @@ async def comandos(ctx):
 @bot.command()
 async def carrega(ctx):
 
+    if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+        await ctx.message.delete()
+
     if ctx.author.voice is None:
             await ctx.channel.send("Você não está conectado em nenhum canal de voz")
             return
@@ -157,7 +161,8 @@ async def carrega(ctx):
     if not is_connected(ctx):
         # print('não conectado\n\n\n')
         roletaVC = await ctx.author.voice.channel.connect()
-        await ctx.channel.send(f'Conectado em {roletaVC.channel}.')
+        conectado = await ctx.channel.send(f'Conectado em {roletaVC.channel}')
+        await conectado.delete(delay=10)
 
     else:
         roletaVC = ctx.message.guild.voice_client
@@ -168,6 +173,9 @@ async def carrega(ctx):
 @bot.command()
 async def descarrega(ctx):
 
+    if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+        await ctx.message.delete()
+
     if is_connected(ctx):
         await ctx.message.guild.voice_client.disconnect()
     else:
@@ -176,8 +184,6 @@ async def descarrega(ctx):
 
 @bot.command()
 async def roletav(ctx, *, argumentos='1'):
-
-    await ctx.message.delete()
 
     if not ctx.message.guild.voice_client:
         await ctx.channel.send(f'Não estou conectado a nenhum canal, use {prefix}carrega')
@@ -191,23 +197,27 @@ async def roletav(ctx, *, argumentos='1'):
 
     if ctx.author.voice.channel == ctx.message.guild.voice_client.channel:
         if ctx.voice_client.is_playing():
-            await ctx.reply('Calma, tem bala pra todo mundo!:)')
+            mes = await ctx.reply('Calma, tem bala pra todo mundo!:)')
+            await mes.delete(delay=10)
         else:
             try:
                 balas = int(argumentos)
             except ValueError: 
-                await ctx.reply(f'Me fala quando conseguir colocar "{argumentos}" balas no revólver')
+                mes = await ctx.reply(f'Me fala quando conseguir colocar "{argumentos}" balas no revólver')
+                await mes.delete(delay=10)
                 return
 
             n = random.randint(1, 6)
             if balas < 0:
                 roletaVC.play(discord.FFmpegPCMAudio("audio/uepa.mp3"))
                 await asyncio.sleep(1)
-                await ctx.reply('Muito corajoso você')
+                mes = await ctx.reply('Muito corajoso você')
+                await mes.delete(delay=10)
             elif balas == 0:
                 roletaVC.play(discord.FFmpegPCMAudio("audio/uepa.mp3"))
             elif balas > 6:
-                await ctx.reply('Você é corajoso até demais')
+                mes = await ctx.reply('Você é corajoso até demais')
+                await mes.delete(delay=10)
             elif balas == 6:
                 roletaVC.play(discord.FFmpegPCMAudio("audio/tiro.mp3"))
                 await asyncio.sleep(1)
@@ -223,6 +233,9 @@ async def roletav(ctx, *, argumentos='1'):
 
     else:
         await roletaVC.move_to(ctx.author.voice.channel)
+    
+    if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+        await ctx.message.delete()
 
 
 # @bot.command()
