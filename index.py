@@ -15,9 +15,8 @@ import asyncio
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 # importando respostas basicas = fala algo : responde algo
-
-data = open('links.json', 'r')
-response_object = json.load(data)
+with open('links.json', encoding='utf-8') as data:
+    response_object = json.load(data)
 
 # importando configurações pessoais por um json
 
@@ -114,21 +113,37 @@ async def ping(ctx):
     pingm = await ctx.channel.send('Ping?')
     await pingm.edit(content = 'Pong! Latência de {0} ms. Latência de API {1} ms'.format(str(pingm.created_at - ctx.message.created_at)[8:-3], round(bot.latency*1000)))
 
+
+@slash.slash(name='roleta',
+            description='Roleta por texto',
+            guild_ids=[317781355113086976, 477183409572282379],
+            options=[
+                create_option(
+                    name='balas',
+                    description='Número de balas',
+                    required=False,
+                    option_type=3
+                )
+            ])
+
 @bot.command()
-async def roleta(ctx, *, argumentos='1'):
+async def roleta(ctx, *, balas='1'):
     
     heya = bot.get_emoji(895327381437448204)
     gun = bot.get_emoji(895329552518217798)
 
-    # if gun not in ctx.guild.emojis:
-    #     gun = ':gun:'
-    # if heya not in ctx.guild.emojis:
-    #     heya = ':smiley:'
+    if gun not in ctx.guild.emojis:
+        gun = ':gun:'
+    if heya not in ctx.guild.emojis:
+        heya = ':smiley:'
+    
+
 
     try:
-        balas = int(argumentos)
+        balas = int(balas)
     except ValueError: 
-        await ctx.reply(f'Me fala quando conseguir colocar "{argumentos}" balas no revólver')
+        mes = await ctx.reply(f'Me fala quando conseguir colocar "{balas}" balas no revólver')
+        await mes.delete(delay=10)
         return
 
     n = random.randint(1, 6)
@@ -147,7 +162,21 @@ async def roleta(ctx, *, argumentos='1'):
 
 @bot.command()
 async def comandos(ctx):
-    await ctx.reply(f'**{bot.user}**\n{prefix}ping, {prefix}roleta (numero de balas), {prefix}comandos, {prefix}provas, {prefix}roletav')
+
+    embedComandos = discord.Embed(
+    title=f'{bot.user} Comandos', color=0xF0F0F0)
+
+    embedComandos.set_thumbnail(url=bot.user.avatar_url)
+
+    embedComandos.add_field(name=f'{prefix}ping', value='Testa o ping do bot e da API do discord', inline=False)
+    embedComandos.add_field(name=f'{prefix}roleta (1-6)', value='Uma roleta russa, opcionalmente escreva o número de balas a ser usado', inline=False)
+    embedComandos.add_field(name=f'{prefix}roletav/{prefix}r (1-6)', value=f'Roleta russa por comando de voz, use {prefix}carrega para chamar o bot.\nopcionalmente escreva o número de balas a ser usado', inline=False)
+    embedComandos.add_field(name=f'{prefix}comandos', value='Mostra uma lista de comandos', inline=False)
+    embedComandos.add_field(name=f'{prefix}provas', value='Mostra as provas para os próximos 7 dias', inline=False)
+    
+    await ctx.reply(embed=embedComandos)
+
+    # await ctx.reply(f'**{bot.user}**\n{prefix}ping, {prefix}roleta (numero de balas), {prefix}comandos, {prefix}provas, {prefix}roletav')
 
 @bot.command(aliases=['carregar'])
 async def carrega(ctx):
@@ -184,7 +213,7 @@ async def descarrega(ctx):
         await ctx.channel.send('Não estou conectado em nenhum canal')
 
 
-@bot.command(aliases=['r'])
+@bot.command(aliases=['r', 'rpg'])
 async def roletav(ctx, *, argumentos='1'):
 
     if not ctx.message.guild.voice_client:
@@ -194,6 +223,8 @@ async def roletav(ctx, *, argumentos='1'):
     if ctx.author.voice is None:
             await ctx.channel.send("Você não está conectado em nenhum canal de voz")
             return
+
+    consegueMover = ctx.author.voice.channel.permissions_for(ctx.guild.me).move_members
 
     roletaVC = ctx.message.guild.voice_client
 
@@ -221,13 +252,25 @@ async def roletav(ctx, *, argumentos='1'):
                 mes = await ctx.reply('Você é corajoso até demais')
                 await mes.delete(delay=10)
             elif balas == 6:
-                roletaVC.play(discord.FFmpegPCMAudio("audio/tiro.mp3"))
+                if ctx.invoked_with == 'rpg':
+                    roletaVC.play(discord.FFmpegPCMAudio("audio/tiroG.mp3"))
+                else:
+                    roletaVC.play(discord.FFmpegPCMAudio("audio/tiro.mp3"))
                 await asyncio.sleep(1)
-                await ctx.message.author.move_to(None)
+                if consegueMover:
+                    await ctx.message.author.move_to(None)
+                else:
+                    await ctx.reply('Muito forte')
             elif n <= balas:
-                roletaVC.play(discord.FFmpegPCMAudio("audio/tiro.mp3"))
+                if ctx.invoked_with == 'rpg':
+                    roletaVC.play(discord.FFmpegPCMAudio("audio/tiroG.mp3"))
+                else:
+                    roletaVC.play(discord.FFmpegPCMAudio("audio/tiro.mp3"))
                 await asyncio.sleep(1)
-                await ctx.message.author.move_to(None)
+                if consegueMover:
+                    await ctx.message.author.move_to(None)
+                else:
+                    await ctx.reply('Muito forte')
             else:
                 roletaVC.play(discord.FFmpegPCMAudio("audio/falha.mp3"))
                 await asyncio.sleep(1.5)
@@ -273,10 +316,9 @@ async def roletav(ctx, *, argumentos='1'):
 
 @bot.command()
 async def provas(ctx):
-    prov = open('provas.json', "r")
-    provas = json.load(prov)
-    prov.close()
 
+    with open('provas.json', encoding='utf-8') as prov:
+        provas = json.load(prov)
 
     if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
         await ctx.message.delete()
@@ -339,15 +381,16 @@ async def on_message(ctx):
         await ctx.channel.send(response_object[ctx.content])
 
     if bot.user.mentioned_in(ctx):
-        comandos(ctx)
+        await comandos(ctx)
     
     await bot.process_commands(ctx)
 
+
 @tasks.loop(seconds=60*60*24) # a cada 1 dia
 async def aviso_provas(IDcanalProvas):
-    prov = open('provas.json', "r")
-    provas = json.load(prov)
-    prov.close()
+
+    with open('provas.json', encoding='utf-8') as prov:
+        provas = json.load(prov)
 
     canalProvas = bot.get_channel(int(IDcanalProvas))
 
