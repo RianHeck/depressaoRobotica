@@ -62,7 +62,7 @@ def is_connected(ctx):
 # pemitindo o bot ver outras pessoas, e mais algumas coisas da API que eu com certeza entendo
 intents = discord.Intents.all()
 intents.members = True
-bot = commands.Bot(command_prefix=prefix, intents=intents)
+bot = commands.Bot(command_prefix=prefix, intents=intents, case_insensitive=True)
 slash = SlashCommand(bot, sync_commands=True)
 
 @bot.event
@@ -116,7 +116,8 @@ async def ping(ctx):
 
 @slash.slash(name='roleta',
             description='Roleta por texto',
-            guild_ids=[317781355113086976, 477183409572282379],
+            #guild_ids=[317781355113086976, 477183409572282379],
+            guild_ids=[317781355113086976],
             options=[
                 create_option(
                     name='balas',
@@ -172,7 +173,7 @@ async def comandos(ctx):
     embedComandos.add_field(name=f'{prefix}roleta (1-6)', value='Uma roleta russa, opcionalmente escreva o número de balas a ser usado', inline=False)
     embedComandos.add_field(name=f'{prefix}roletav/{prefix}r (1-6)', value=f'Roleta russa por comando de voz, use {prefix}carrega para chamar o bot.\nopcionalmente escreva o número de balas a ser usado', inline=False)
     embedComandos.add_field(name=f'{prefix}comandos', value='Mostra uma lista de comandos', inline=False)
-    embedComandos.add_field(name=f'{prefix}provas', value='Mostra as provas para os próximos 7 dias', inline=False)
+    embedComandos.add_field(name=f'{prefix}provas (numero de semanas)', value='Mostra as provas para as próximas semanas, 2 semanas se não especificado', inline=False)
     
     await ctx.reply(embed=embedComandos)
 
@@ -190,14 +191,21 @@ async def carrega(ctx):
 
     global canalConectado
     canalConectado = ctx.channel
+    
 
     if not is_connected(ctx):
         roletaVC = await ctx.author.voice.channel.connect()
+        # roletaVC = await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_deaf=True)
         await ctx.channel.send(f'Conectado em {roletaVC.channel}')
 
     else:
         roletaVC = ctx.message.guild.voice_client
         await roletaVC.move_to(ctx.author.voice.channel)
+        #roletaVC = await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_deaf=True)
+
+
+    # await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_deaf=True)
+    # roletaVC = ctx.message.guild.voice_client
 
     roletaVC.play(discord.FFmpegPCMAudio("audio/reload.mp3"))
 
@@ -218,6 +226,8 @@ async def roletav(ctx, *, argumentos='1'):
 
     if not ctx.message.guild.voice_client:
         await ctx.channel.send(f'Não estou conectado a nenhum canal, use {prefix}carrega')
+        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+            await ctx.message.delete()
         return
 
     if ctx.author.voice is None:
@@ -314,60 +324,116 @@ async def roletav(ctx, *, argumentos='1'):
 #     await ctx.channel.send(leRoles())    
 
 
-@bot.command()
-async def provas(ctx):
+async def criaEmbedProvas(channel, sem):
 
-    with open('provas.json', encoding='utf-8') as prov:
-        provas = json.load(prov)
+    async with channel.typing():
+        with open('provas.json', encoding='utf-8') as prov:
+            provas = json.load(prov)
+        
+        hoje = datetime.date.today()
+        hojeString = datetime.date.today().strftime('%d/%m/%y')
+        diaDaSemana = hoje.weekday()
+
+        embedProvas = discord.Embed(
+        title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)', color=0x336EFF)
+
+        provasParaPeriodo = []
+        for attribute in provas:
+
+                dataProvaRaw = provas[attribute]
+                dataProva = datetime.date.fromisoformat(dataProvaRaw)
+                
+                if(dataProva-hoje).days <= (7 * sem) and (dataProva-hoje).days >= 0:
+                    provasParaPeriodo.append((attribute, (datetime.date.fromisoformat(provas[attribute])-hoje).days))
+                    
+
+        provasParaPeriodo = sorted(provasParaPeriodo, key=lambda attribute: attribute[1])
+
+        
+        if provasParaPeriodo[0][1] == 0:
+            embedProvas.set_image(url='https://i.imgur.com/kaAhqqC.gif')
+            embedProvas.color = 0xFF0000
+        elif provasParaPeriodo[0][1] == 1:
+            embedProvas.set_image(url='https://i.imgur.com/AQhq1Mo.png')
+            embedProvas.color = 0xFFFF00
+        else:
+            embedProvas.set_image(url='https://i.imgur.com/7nqUbE9.gif')
+
+    return embedProvas, provasParaPeriodo
+
+@bot.command()
+async def provas(ctx, sem = 2):
+
+    embedProvas, provasParaPeriodo = await criaEmbedProvas(ctx.channel, sem)
 
     if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
-        await ctx.message.delete()
-    
-    hoje = datetime.date.today()
-    hojeString = datetime.date.today().strftime('%d/%m/%y')
-    diaDaSemana = hoje.weekday()
+            await ctx.message.delete()
 
-    embedProvas = discord.Embed(
-    title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para a semana', color=0x336EFF)
+    for attribute in provasParaPeriodo:  
 
-    embedProvas.set_image(url='https://i.imgur.com/7nqUbE9.gif')
-
-    for attribute in provas:
-            value = provas[attribute]
-            diaDaProva = datetime.date.fromisoformat(value)
-
-            if(diaDaProva-hoje).days == 1:
-                embedProvas.set_image(url='https://i.imgur.com/AQhq1Mo.png')
-                embedProvas.color = 0xFFFF00
-
-            if(diaDaProva-hoje).days == 0:
-                embedProvas.set_image(url='https://i.imgur.com/kaAhqqC.gif')
-                embedProvas.color = 0xFF0000
-                dia = diaDaProva.strftime('%d/%m/%y')
-                diaDaSemana = diaSemana(diaDaProva.weekday())
-                embedProvas.add_field(name=f'•{attribute}', value=f'__->**É HOJE FIOTE** PROVA DE {attribute}, {diaDaSemana}, {dia}__', inline=False)
-            
-            elif(diaDaProva-hoje).days <= 7 and (diaDaProva-hoje).days > 0:
-                dia = diaDaProva.strftime('%d/%m/%y')
-                diaDaSemana = diaSemana(diaDaProva.weekday())
-                embedProvas.add_field(name=f'•{attribute}', value=f'->Prova de {attribute}, {diaDaSemana}, {dia} em **{(diaDaProva-hoje).days} dias**', inline=False)
+        with open('provas.json', encoding='utf-8') as prov:
+            dataProvaRaw = json.load(prov)[attribute[0]]
+        hoje = datetime.date.today()
+        dataProva = datetime.date.fromisoformat(dataProvaRaw)
+        dia = dataProva.strftime('%d/%m/%y')
+        diaDaSemana = diaSemana(dataProva.weekday())
+        if attribute[1] == 0:
+            embedProvas.add_field(name=f'•{attribute[0]}', value=f'__->**É HOJE FIOTE** PROVA DE {attribute[0]}, {diaDaSemana}, {dia}__', inline=False)
+        elif attribute[1] == 1:
+            embedProvas.add_field(name=f'•{attribute[0]}', value=f'->Prova de {attribute[0]}, {diaDaSemana}, {dia} em **{(dataProva-hoje).days} dia**', inline=False)
+        else:
+            embedProvas.add_field(name=f'•{attribute[0]}', value=f'->Prova de {attribute[0]}, {diaDaSemana}, {dia} em **{(dataProva-hoje).days} dias**', inline=False)
 
 
     mensagemJunto = await ctx.channel.send(f'{ctx.author.mention}')
     mensagemEmbed = await ctx.channel.send(embed=embedProvas)
+    # guardar as mensagens num txt pra apagar elas depois se o bot reiniciar antes de deleta-las
+    # with open("embeds.txt", 'w') as f:
+    #     f.write(f'{mensagemJunto.id}' + '\n')
+    #     f.write(f'{mensagemEmbed.id}' + '\n')
+    #     # json.dump(score, f, indent=2) 
+
     await mensagemJunto.delete(delay=60)
     await mensagemEmbed.delete(delay=60)
 
-# @bot.command
-# async def reseta(ctx):
+    # with open("embeds.txt", 'r') as f:
+    #     mensagensParaDeletar = [line.rstrip('\n') for line in f]
 
-#     # depois revisitar esse codigo, ele nao eh amigavel com varios servers
-#     # especificar o server e canal
-#     if ctx.author.id == testeID:
-#         aviso_provas.cancel()
-#         aviso_provas.start(IDCanalProvas)
-#     else:
-#         ctx.reply('você não possui permissão para usar esse comando!')
+    #     for channels in bot.guilds:
+    #         for mensagem in mensagensParaDeletar:
+    #             if mensagem in channels.history:
+    #                 int(mensagem).delete()
+    #                 mensagem = mensagem.replace(mensagem, '')
+
+
+@bot.command()
+async def reseta(ctx):
+
+    # depois revisitar esse codigo, ele nao eh amigavel com varios servers
+    # especificar o server e canal
+    if ctx.author.id == int(testeID):
+        aviso_provas.cancel()
+        await asyncio.sleep(1)
+        aviso_provas.start(IDCanalProvas)
+    elif not avisosAutomaticos:
+        await ctx.reply('Avisos automáticos desligados')
+    else:
+        await ctx.reply('Você não possui permissão para usar esse comando!')
+
+@bot.command()
+async def manda(ctx, *, mens):
+
+    if ctx.author.id == testeID:
+        canal = bot.get_channel(int(958058492550316113))
+        await canal.send(mens)
+
+
+@bot.command()
+async def limpa(ctx):
+
+    if ctx.author.id == testeID:
+        canal = bot.get_channel(int(958058492550316113))
+        await canal.purge(bulk=False)
 
 @bot.event
 async def on_message(ctx):
@@ -380,6 +446,9 @@ async def on_message(ctx):
     if ctx.content in response_object:
         await ctx.channel.send(response_object[ctx.content])
 
+    # if ctx.content == (f'{prefix}ajuda'):
+    #     await ctx.s
+
     if bot.user.mentioned_in(ctx):
         await comandos(ctx)
     
@@ -387,48 +456,41 @@ async def on_message(ctx):
 
 
 @tasks.loop(seconds=60*60*24) # a cada 1 dia
-async def aviso_provas(IDcanalProvas):
+async def aviso_provas(ID):
 
     with open('provas.json', encoding='utf-8') as prov:
         provas = json.load(prov)
 
-    canalProvas = bot.get_channel(int(IDcanalProvas))
+    canalProvas = bot.get_channel(int(ID))
+    sem = 2 # quantidade de semanas para verificar
 
-    # verificar se as mensagens sao do bot antes de deletar
-    await canalProvas.purge(limit=2, bulk=False)
+    # deleta as mensagens passadas do bot
+    async for message in canalProvas.history(limit=2):
+        if message.author == bot.user:
+            # print(message)
+            await message.delete()
 
-    hoje = datetime.date.today()
-    hojeString = datetime.date.today().strftime('%d/%m/%y')
-    diaDaSemana = hoje.weekday()
-    
-    embedProvas = discord.Embed(
-            title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description='Provas para a semana', color=0x336EFF)
-    
-    embedProvas.set_image(url='https://i.imgur.com/7nqUbE9.gif')
+    async with canalProvas.typing():
 
-    for attribute in provas:
-            value = provas[attribute]
+        embedProvas, provasParaPeriodo = await criaEmbedProvas(canalProvas, sem)
 
-            diaDaProva = datetime.date.fromisoformat(value)
+        for attribute in provasParaPeriodo:  
 
-            if(diaDaProva-hoje).days == 1:
-                embedProvas.set_image(url='https://i.imgur.com/AQhq1Mo.png')
-                embedProvas.color = 0xFFFF00
+            with open('provas.json', encoding='utf-8') as prov:
+                dataProvaRaw = json.load(prov)[attribute[0]]
+            hoje = datetime.date.today()
+            dataProva = datetime.date.fromisoformat(dataProvaRaw)
+            dia = dataProva.strftime('%d/%m/%y')
+            diaDaSemana = diaSemana(dataProva.weekday())
+            if attribute[1] == 0:
+                embedProvas.add_field(name=f'•{attribute[0]}', value=f'__->**É HOJE RAPAZIADA** PROVA DE {attribute[0]}, {diaDaSemana}, {dia}__', inline=False)
+            elif attribute[1] == 1:
+                embedProvas.add_field(name=f'•{attribute[0]}', value=f'->Prova de {attribute[0]}, {diaDaSemana}, {dia} em **{(dataProva-hoje).days} dia**', inline=False)
+            else:
+                embedProvas.add_field(name=f'•{attribute[0]}', value=f'->Prova de {attribute[0]}, {diaDaSemana}, {dia} em **{(dataProva-hoje).days} dias**', inline=False)
 
-            if(diaDaProva-hoje).days == 0:
-                embedProvas.set_image(url='https://i.imgur.com/kaAhqqC.gif')
-                embedProvas.color = 0xFF0000
-                dia = diaDaProva.strftime('%d/%m/%y')
-                diaDaSemana = diaSemana(diaDaProva.weekday())
-                embedProvas.add_field(name=f'•{attribute}', value=f'__->**É HOJE RAPAZIADA** PROVA DE {attribute}, {diaDaSemana}, {dia}__', inline=False)
-
-            elif(diaDaProva-hoje).days <= 7 and (diaDaProva-hoje).days > 0:
-                dia = diaDaProva.strftime('%d/%m/%y')
-                diaDaSemana = diaSemana(diaDaProva.weekday())
-                embedProvas.add_field(name=f'•{attribute}', value=f'->Prova de {attribute}, {diaDaSemana}, {dia} em **{(diaDaProva-hoje).days} dias**', inline=False)
-
-    await canalProvas.send('@everyone')
-    await canalProvas.send(embed=embedProvas)
+        await canalProvas.send('@everyone')
+        await canalProvas.send(embed=embedProvas)
 
 bot.run(btoken)
 
