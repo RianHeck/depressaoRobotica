@@ -58,6 +58,17 @@ def is_connected(ctx):
     voice_client = get(ctx.bot.voice_clients, guild=ctx.guild)
     return voice_client and voice_client.is_connected()
 
+def load_json(filename):
+    try:
+        with open(filename, encoding='utf-8') as inF:
+            return json.load(inF)
+    except FileNotFoundError:
+        with open(filename, 'r+', encoding='utf-8') as inF:
+            return json.load(inF)
+
+def write_json(filename, content):
+    with open(filename, encoding='utf-8') as outF:
+        json.dump(content, outF, ensure_ascii=True, indent=4)
 
 # pemitindo o bot ver outras pessoas, e mais algumas coisas da API que eu com certeza entendo
 intents = discord.Intents.all()
@@ -327,7 +338,7 @@ async def roletav(ctx, *, argumentos='1'):
 async def criaEmbedProvas(channel, sem):
 
     async with channel.typing():
-        with open('provas.json', encoding='utf-8') as prov:
+        with open('provasTeste.json', encoding='utf-8') as prov:
             provas = json.load(prov)
         
         hoje = datetime.date.today()
@@ -338,13 +349,22 @@ async def criaEmbedProvas(channel, sem):
         title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)', color=0x336EFF)
 
         provasParaPeriodo = []
-        for attribute in provas:
+        # for attribute in provas:
 
-                dataProvaRaw = provas[attribute]
+        #         dataProvaRaw = provas[attribute]
+        #         dataProva = datetime.date.fromisoformat(dataProvaRaw)
+                
+        #         if(dataProva-hoje).days <= (7 * sem) and (dataProva-hoje).days >= 0:
+        #             provasParaPeriodo.append((attribute, (datetime.date.fromisoformat(provas[attribute])-hoje).days))
+
+
+        for materia in provas:
+            for provaIndividual in provas[materia]:
+                dataProvaRaw = provaIndividual['data']
                 dataProva = datetime.date.fromisoformat(dataProvaRaw)
                 
                 if(dataProva-hoje).days <= (7 * sem) and (dataProva-hoje).days >= 0:
-                    provasParaPeriodo.append((attribute, (datetime.date.fromisoformat(provas[attribute])-hoje).days))
+                    provasParaPeriodo.append((provaIndividual['nome'], (datetime.date.fromisoformat(provaIndividual['data'])-hoje).days, materia, provaIndividual['tipo']))
                     
 
         provasParaPeriodo = sorted(provasParaPeriodo, key=lambda attribute: attribute[1])
@@ -369,8 +389,8 @@ async def provas(ctx, sem = 2):
     if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
             await ctx.message.delete()
 
-    for attribute in provasParaPeriodo:  
 
+    for attribute in provasParaPeriodo:
         with open('provas.json', encoding='utf-8') as prov:
             dataProvaRaw = json.load(prov)[attribute[0]]
         hoje = datetime.date.today()
@@ -387,6 +407,10 @@ async def provas(ctx, sem = 2):
 
     mensagemJunto = await ctx.channel.send(f'{ctx.author.mention}')
     mensagemEmbed = await ctx.channel.send(embed=embedProvas)
+
+    # velho = load_json('embeds.txt')
+    
+    # write_json('embeds.txt', velho + 'a')
     # guardar as mensagens num txt pra apagar elas depois se o bot reiniciar antes de deleta-las
     # with open("embeds.txt", 'w') as f:
     #     f.write(f'{mensagemJunto.id}' + '\n')
@@ -411,6 +435,10 @@ async def reseta(ctx):
 
     # depois revisitar esse codigo, ele nao eh amigavel com varios servers
     # especificar o server e canal
+
+    if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+                await ctx.message.delete()
+
     if ctx.author.id == int(testeID):
         aviso_provas.cancel()
         await asyncio.sleep(1)
