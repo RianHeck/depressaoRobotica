@@ -81,6 +81,8 @@ async def on_ready():
     
     print(f'Conectado como {bot.user}')
     await bot.change_presence(activity=discord.Game(f'"{prefix}comandos" para ajuda'))
+
+    print(f'Usando "{prefix}" como prefixo para comandos.')
   
     print(f'Bot foi iniciado, com {len(bot.users)} usuários, em {len(bot.guilds)} servers.')
 
@@ -114,6 +116,24 @@ async def ping(ctx):
     await pingm.edit(content = 'Pong! Latência de {0} ms. Latência de API {1} ms'.format(str(pingm.created_at - ctx.message.created_at)[8:-3], round(bot.latency*1000)))
 
 
+@bot.command()
+async def role(ctx):
+    
+    n = random.randint(1, 5)
+    if n == 1:
+        m = await ctx.channel.send(f'{ctx.message.author.mention}Top!')
+    elif n == 2:
+        m = await ctx.channel.send(f'{ctx.message.author.mention}Jungle!')
+    elif n == 3:
+        m = await ctx.channel.send(f'{ctx.message.author.mention}Mid!')
+    elif n == 4:
+        m = await ctx.channel.send(f'{ctx.message.author.mention}Adc!')
+    elif n == 5:
+        m = await ctx.channel.send(f'{ctx.message.author.mention}Sup!')
+
+    await ctx.message.delete()
+    await m.delete(delay=60)
+
 @slash.slash(name='roleta',
             description='Roleta por texto',
             guild_ids=[317781355113086976, 477183409572282379],
@@ -125,6 +145,13 @@ async def ping(ctx):
                     option_type=3
                 )
             ])
+
+@bot.command()
+async def caralho(ctx):
+
+    await ctx.message.delete()
+    roletaVC = ctx.message.guild.voice_client
+    roletaVC.play(discord.FFmpegPCMAudio("audio/a.mp3"))
 
 @bot.command()
 async def roleta(ctx, *, balas='1'):
