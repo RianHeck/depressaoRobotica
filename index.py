@@ -11,6 +11,9 @@ import locale
 from sys import platform
 import os
 import asyncio
+from dotenv import load_dotenv
+
+load_dotenv()
 
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
@@ -22,14 +25,16 @@ with open('links.json', encoding='utf-8') as data:
 
 with open('config.json', 'r') as conf:
     confs = json.load(conf)
-    btoken = confs['token']
+    # TOKEN = confs['token']
     prefix = confs['prefix']
     IDCanalProvas = confs['canalDeProvas']
     testeID = confs['testeID']
 
+TOKEN = os.getenv('TOKEN')
+
 avisosAutomaticos = True
 
-if btoken == '' or btoken == None:
+if TOKEN == '' or TOKEN == None:
     print('Sem token do Bot')
     raise RuntimeError('Sem token do Bot')
 if prefix == '':
@@ -457,5 +462,5 @@ async def aviso_provas(IDcanalProvas):
     await canalProvas.send('@everyone')
     await canalProvas.send(embed=embedProvas)
 
-bot.run(btoken)
+bot.run(TOKEN)
 
