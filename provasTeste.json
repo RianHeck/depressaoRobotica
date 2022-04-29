@@ -52,7 +52,15 @@
     ],
     
     "Fisica3":[
-        {"nome" :"**Física3** (1)", "data" : "2022-04-15", "tipo" : "prova"}
+        {"nome" :"**Física3** (1)", "data" : "2022-04-15", "tipo" : "prova"},
+        {"nome" :"**Física3** (2)", "data" : "2022-05-20", "tipo" : "prova"},
+        {"nome" :"**Física3** (3)", "data" : "2022-06-24", "tipo" : "prova"},
+        {"nome" :"**Física3** Lista 1", "data" : "2022-04-15", "tipo" : "lista"},
+        {"nome" :"**Física3** Lista 2", "data" : "2022-04-15", "tipo" : "lista"},
+        {"nome" :"**Física3** Lista 3", "data" : "2022-05-20", "tipo" : "lista"},
+        {"nome" :"**Física3** Lista 4", "data" : "2022-05-20", "tipo" : "lista"},
+        {"nome" :"**Física3** Lista 5", "data" : "2022-05-20", "tipo" : "lista"},
+        {"nome" :"recuperacao de **Física3**", "data" : "2022-07-01", "tipo" : "recuperação"}
     ]    
 
 }
