@@ -11,6 +11,9 @@ import locale
 from sys import platform
 import os
 import asyncio
+from dotenv import load_dotenv
+
+load_dotenv()
 
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
@@ -22,21 +25,23 @@ with open('links.json', encoding='utf-8') as data:
 
 with open('config.json', 'r') as conf:
     confs = json.load(conf)
-    btoken = confs['token']
+    # btoken = confs['token']
     prefix = confs['prefix']
     IDCanalProvas = confs['canalDeProvas']
     testeID = confs['testeID']
 
+TOKEN = os.getenv('TOKEN')
+
 avisosAutomaticos = True
 
-if btoken == '' or btoken == None:
+if TOKEN == '' or TOKEN == None:
     print('Sem token do Bot')
     raise RuntimeError('Sem token do Bot')
 if prefix == '':
     prefix = '!'
 if IDCanalProvas == '':
     avisosAutomaticos = False
-    print('Sem ID do canal para avisos automáticos, não haveram mensagens automáticas')
+    print('Sem ID do canal para avisos automáticos, não haverão mensagens automáticas')
 
 def diaSemana(wDia):
     dias = {0: 'Segunda-feira', 1 : 'Terça-feira', 2 : 'Quarta-feira', 3 : 'Quinta-feira', 4 : 'Sexta-feira', 5 : 'Sábado', 6 : 'Domingo'}
@@ -58,17 +63,33 @@ def is_connected(ctx):
     voice_client = get(ctx.bot.voice_clients, guild=ctx.guild)
     return voice_client and voice_client.is_connected()
 
+
 def load_json(filename):
     try:
         with open(filename, encoding='utf-8') as inF:
-            return json.load(inF)
+            arquivo = json.load(inF)
+            return arquivo
+    except ValueError:
+        return []
     except FileNotFoundError:
-        with open(filename, 'r+', encoding='utf-8') as inF:
-            return json.load(inF)
-
+        raise KeyError()
+        
 def write_json(filename, content):
-    with open(filename, encoding='utf-8') as outF:
+    novo = load_json(filename)
+    novo.append(content)
+    with open(filename, 'w', encoding='utf-8') as outF:
+        json.dump(novo, outF, ensure_ascii=True, indent=4)
+
+
+def delete_item(filename, item):
+    content = load_json(filename)
+    if item in content:
+        content.remove(item)
+    else:
+        return -1
+    with open(filename, 'w', encoding='utf-8') as outF:
         json.dump(content, outF, ensure_ascii=True, indent=4)
+
 
 # pemitindo o bot ver outras pessoas, e mais algumas coisas da API que eu com certeza entendo
 intents = discord.Intents.all()
@@ -95,6 +116,21 @@ async def on_ready():
   
     print(f'Bot foi iniciado, com {len(bot.users)} usuários, em {len(bot.guilds)} servers.')
 
+    print('Verificando e deletando embeds deixados para trás')
+    embeds = load_json('embeds.json')
+
+    for embed in embeds:
+        canal = bot.get_channel(embed[1])
+        try:
+            msg = await canal.fetch_message(embed[0])
+            await msg.delete()
+            delete_item('embeds.json', embed)
+        except discord.errors.NotFound:
+            delete_item('embeds.json', embed)
+            print(f'Deletada uma mensagem desaparecida em {canal.guild}/{canal} do arquivo')
+        else:
+            print(f'Deletada uma mensagem em {canal.guild}/{canal}')
+
 
 @bot.event
 async def on_voice_state_update(member, before, after):
@@ -115,6 +151,14 @@ async def on_voice_state_update(member, before, after):
                 await canalConectado.send('Cansei de segurar o revólver')
             if not voice.is_connected():
                 break
+
+@bot.event
+async def on_message_delete(message):
+    embeds = load_json('embeds.json')
+    for embed in embeds:
+        if message.id == embed[0]:
+            delete_item('embeds.json', embed)
+
 # @bot.event
 # async def on_typing(ch, us, wh):
 #     await ch.send(f'FALA LOGO {us.mention}')
@@ -335,100 +379,90 @@ async def roletav(ctx, *, argumentos='1'):
 #     await ctx.channel.send(leRoles())    
 
 
-async def criaEmbedProvas(channel, sem):
+async def criaEmbedProvas(sem):
 
-    async with channel.typing():
-        with open('provasTeste.json', encoding='utf-8') as prov:
-            provas = json.load(prov)
-        
-        hoje = datetime.date.today()
-        hojeString = datetime.date.today().strftime('%d/%m/%y')
-        diaDaSemana = hoje.weekday()
+    with open('provasTeste.json', encoding='utf-8') as prov:
+        provas = json.load(prov)
+    
+    hoje = datetime.date.today()
+    hojeString = datetime.date.today().strftime('%d/%m/%y')
+    diaDaSemana = hoje.weekday()
 
-        embedProvas = discord.Embed(
-        title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)', color=0x336EFF)
+    embedProvas = discord.Embed(
+    title=f'**{diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)', color=0x336EFF)
 
-        provasParaPeriodo = []
-        # for attribute in provas:
-
-        #         dataProvaRaw = provas[attribute]
-        #         dataProva = datetime.date.fromisoformat(dataProvaRaw)
+    provasParaPeriodo = []
+    for materia in provas:
+        for provaIndividual in provas[materia]:
+            dataProvaRaw = provaIndividual['data']
+            dataProva = datetime.date.fromisoformat(dataProvaRaw)
+            
+            if(dataProva-hoje).days <= (7 * sem) and (dataProva-hoje).days >= 0:
+                provasParaPeriodo.append({'nome': provaIndividual['nome'],
+                                          'diasParaProva': (datetime.date.fromisoformat(provaIndividual['data'])-hoje).days,
+                                          'materia': materia,
+                                          'data': dataProva,
+                                          'tipo': provaIndividual['tipo']})
                 
-        #         if(dataProva-hoje).days <= (7 * sem) and (dataProva-hoje).days >= 0:
-        #             provasParaPeriodo.append((attribute, (datetime.date.fromisoformat(provas[attribute])-hoje).days))
 
+    provasParaPeriodo = sorted(provasParaPeriodo, key=lambda attribute: attribute['diasParaProva'])
 
-        for materia in provas:
-            for provaIndividual in provas[materia]:
-                dataProvaRaw = provaIndividual['data']
-                dataProva = datetime.date.fromisoformat(dataProvaRaw)
-                
-                if(dataProva-hoje).days <= (7 * sem) and (dataProva-hoje).days >= 0:
-                    provasParaPeriodo.append((provaIndividual['nome'], (datetime.date.fromisoformat(provaIndividual['data'])-hoje).days, materia, provaIndividual['tipo']))
-                    
+    
+    if provasParaPeriodo[0]['diasParaProva'] == 0:
+        embedProvas.set_image(url='https://i.imgur.com/kaAhqqC.gif')
+        embedProvas.color = 0xFF0000
+    elif provasParaPeriodo[0]['diasParaProva'] == 1:
+        embedProvas.set_image(url='https://i.imgur.com/AQhq1Mo.png')
+        embedProvas.color = 0xFFFF00
+    else:
+        embedProvas.set_image(url='https://i.imgur.com/zkGm9j2.jpg')
 
-        provasParaPeriodo = sorted(provasParaPeriodo, key=lambda attribute: attribute[1])
-
-        
-        if provasParaPeriodo[0][1] == 0:
-            embedProvas.set_image(url='https://i.imgur.com/kaAhqqC.gif')
-            embedProvas.color = 0xFF0000
-        elif provasParaPeriodo[0][1] == 1:
-            embedProvas.set_image(url='https://i.imgur.com/AQhq1Mo.png')
-            embedProvas.color = 0xFFFF00
-        else:
-            embedProvas.set_image(url='https://i.imgur.com/7nqUbE9.gif')
+    # aumentar tamanho horizontal
+    # footer = "\u2800" * 100
+    # footer = footer + "|"
+    # print(footer)
+    # embedProvas.set_footer(text=footer)
 
     return embedProvas, provasParaPeriodo
 
 @bot.command()
 async def provas(ctx, sem = 2):
 
-    embedProvas, provasParaPeriodo = await criaEmbedProvas(ctx.channel, sem)
+# criar lista de materias baseadas nas roles da pessoa
+# if attribute['materia'] in listaMateriasEspecificas:
+#     (1)
+# mandar somente essas para comando !provas
+    async with ctx.channel.typing():
 
-    if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
-            await ctx.message.delete()
+        embedProvas, provasParaPeriodo = await criaEmbedProvas(sem)
+
+        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+                await ctx.message.delete()
+
+        for prova in provasParaPeriodo:
+            dataProva = prova['data']
+            dia = dataProva.strftime('%d/%m/%y')
+            diaDaSemana = diaSemana(dataProva.weekday())
+            # aqui (1)
+            if prova['diasParaProva'] == 0:
+                embedProvas.add_field(name=f'•{prova["nome"]}',
+                                      value=f'__->**É HOJE FIOTE** PROVA DE {prova["nome"]}, {diaDaSemana}, {dia}__', inline=False)
+            elif prova['diasParaProva'] == 1:
+                embedProvas.add_field(name=f'•{prova["nome"]}',
+                                      value=f'->Prova de {prova["nome"]}, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dia**', inline=False)
+            else:
+                embedProvas.add_field(name=f'•{prova["nome"]}',
+                                      value=f'->Prova de {prova["nome"]}, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dias**', inline=False)
 
 
-    for attribute in provasParaPeriodo:
-        with open('provas.json', encoding='utf-8') as prov:
-            dataProvaRaw = json.load(prov)[attribute[0]]
-        hoje = datetime.date.today()
-        dataProva = datetime.date.fromisoformat(dataProvaRaw)
-        dia = dataProva.strftime('%d/%m/%y')
-        diaDaSemana = diaSemana(dataProva.weekday())
-        if attribute[1] == 0:
-            embedProvas.add_field(name=f'•{attribute[0]}', value=f'__->**É HOJE FIOTE** PROVA DE {attribute[0]}, {diaDaSemana}, {dia}__', inline=False)
-        elif attribute[1] == 1:
-            embedProvas.add_field(name=f'•{attribute[0]}', value=f'->Prova de {attribute[0]}, {diaDaSemana}, {dia} em **{(dataProva-hoje).days} dia**', inline=False)
-        else:
-            embedProvas.add_field(name=f'•{attribute[0]}', value=f'->Prova de {attribute[0]}, {diaDaSemana}, {dia} em **{(dataProva-hoje).days} dias**', inline=False)
+        # mensagemJunto = await ctx.channel.send(f'{ctx.author.mention}')
+        mensagemEmbed = await ctx.channel.send(content=f'{ctx.author.mention}', embed=embedProvas)
+        write_json('embeds.json', (mensagemEmbed.id, ctx.channel.id))
 
-
-    mensagemJunto = await ctx.channel.send(f'{ctx.author.mention}')
-    mensagemEmbed = await ctx.channel.send(embed=embedProvas)
-
-    # velho = load_json('embeds.txt')
-    
-    # write_json('embeds.txt', velho + 'a')
-    # guardar as mensagens num txt pra apagar elas depois se o bot reiniciar antes de deleta-las
-    # with open("embeds.txt", 'w') as f:
-    #     f.write(f'{mensagemJunto.id}' + '\n')
-    #     f.write(f'{mensagemEmbed.id}' + '\n')
-    #     # json.dump(score, f, indent=2) 
-
-    await mensagemJunto.delete(delay=60)
-    await mensagemEmbed.delete(delay=60)
-
-    # with open("embeds.txt", 'r') as f:
-    #     mensagensParaDeletar = [line.rstrip('\n') for line in f]
-
-    #     for channels in bot.guilds:
-    #         for mensagem in mensagensParaDeletar:
-    #             if mensagem in channels.history:
-    #                 int(mensagem).delete()
-    #                 mensagem = mensagem.replace(mensagem, '')
-
+        await mensagemEmbed.delete(delay=60)
+        # delete_item('embeds.json', (mensagemEmbed.id, ctx.channel.id))
+        
+        
 
 @bot.command()
 async def reseta(ctx):
@@ -520,5 +554,5 @@ async def aviso_provas(ID):
         await canalProvas.send('@everyone')
         await canalProvas.send(embed=embedProvas)
 
-bot.run(btoken)
+bot.run(TOKEN)
 
