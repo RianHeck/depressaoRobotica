@@ -1,7 +1,7 @@
 from discord.ext import commands, tasks
 import datetime
 import discord
-from main import arquivoEmbeds, avisosAutomaticos, arquivoProvas
+from main import avisosAutomaticos, arquivoProvas
 from utils.db import *
 from utils.json import *
 import sys
@@ -265,26 +265,6 @@ class Provas(commands.Cog):
     @tasks.loop(minutes=1) # verifica a cada 1 minuto
     async def aviso_provas(self):
 
-        # db = sqlite3.connect('main.sqlite')
-        # cursor = db.cursor()
-        # cursor.execute(f'SELECT * FROM main')
-        # mensagens = cursor.fetchall()
-        # for mensagem in mensagens:
-        #     canal = self.bot.get_channel(mensagem[1])
-        #     try:
-        #         msg = await canal.fetch_message(mensagem[0])
-        #         # await self.delete_item(arquivoEmbedsAuto, mensagem)
-        #         cursor.execute(f'DELETE FROM main WHERE id_mens = {mensagem[0]}')
-        #         await msg.delete()
-        #     except discord.errors.NotFound:
-        #         print(f'Deletada uma mensagem automática desaparecida em {canal.guild}/{canal} do arquivo')
-        #     else:
-        #         print(f'Deletada uma mensagem automática em {canal.guild}/{canal}')
-
-        # db.commit()
-        # cursor.close()
-        # db.close()
-
         mensagens = await returnTable(tableAvisos)
         for mensagem in mensagens:
             canalProvas = self.bot.get_channel(mensagem[0])
@@ -294,102 +274,46 @@ class Provas(commands.Cog):
 
             agora = datetime.datetime.now().time().replace(microsecond=0)
             tempo_setado = datetime.time.fromisoformat(mensagem[2])
-            # tempo_setado = datetime.time.fromisoformat('18:58:00')
+            
             diferenca = datetime.datetime.combine(datetime.date.min, agora) - datetime.datetime.combine(datetime.date.min, tempo_setado)
             t1 = datetime.timedelta(minutes=1)
             t2 = datetime.timedelta(seconds=0)
-            # print(diferenca)
-            # if(diferenca > t2 and diferenca < t1):
-            #     print('PDOE MANDAR')
-            # print(diferenca < t1)
-            # print(mensagem[2])
-
 
             if(diferenca > t2 and diferenca < t1):
-                
-                try:
-                    if mensagem[1] != 0:
+                if mensagem[1] != 0:
+                    try:
                         msg = await canalProvas.fetch_message(mensagem[1])
                         await msg.delete()
-                    # await self.delete_item(arquivoEmbedsAuto, mensagem)
-                    await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[1]}')
-                except discord.errors.NotFound:
-                    print(f'Deletada uma mensagem automática desaparecida em {canalProvas.guild}/{canalProvas} do arquivo')
-                else:
-                    if mensagem[1] != 0:
+                    except discord.errors.NotFound:
+                        print(f'Deletada uma mensagem automática desaparecida em {canalProvas.guild}/{canalProvas} do arquivo')
+                    else:
                         print(f'Deletada uma mensagem automática em {canalProvas.guild}/{canalProvas}')
+                    finally:
+                        await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[1]}')
 
-                    
-                    #canalProvas = self.bot.get_channel(int(id))
-                    sem = 2 # quantidade de semanas para verificar
-                    print(f'Enviando provas task para {canalProvas}')
+                sem = 2 # quantidade de semanas para verificar
+                print(f'Enviando provas task para {canalProvas}')
 
-                    # ter json com lista de canais para mandar mensagens
-                    # ao inves de usar o config.json
+                async with canalProvas.typing():
+                    embedProvas, provasParaPeriodo = await self.criaEmbedProvas(sem)
 
-                    # CRIAR COMANDO PARA GERENCIAR MENSAGENS AUTOMATICAS
-                    # RESTART, CHANGE_INTERVAL E TAL
+                    for prova in provasParaPeriodo:
+                        dataProva = prova['data']
+                        dia = dataProva.strftime('%d/%m/%y')
+                        diaDaSemana = self.diaSemana(dataProva.weekday())
+                        if prova['diasParaProva'] == 0:
+                            embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                                    value=f'__->**É HOJE RAPAZIADA** **{prova["nome"].upper()}** DE **{prova["materia"].upper()}**, {diaDaSemana}, {dia}__', inline=False)
+                        elif prova['diasParaProva'] == 1:
+                            embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                                    value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dia**', inline=False)
+                        else:
+                            embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                                    value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dias**', inline=False)
 
-                    # COMECAR A UTILIZAR ASYNCIOSCHEDULER() E SQLITE
-                    # https://www.youtube.com/watch?v=Le_RNN4po30&list=PLYeOw6sTSy6ZGyygcbta7GcpI8a5-Cooc&index=10
-                    # https://www.youtube.com/watch?v=Y9DzfPJsP2s
+                mensagemEmbed = await canalProvas.send(content='@everyone', embed=embedProvas)
 
-                    # PENSAR EM COMECAR A USAR MYSQL PARA GERENCIAR DADOS
-                    # OU SQLITE
-
-                    # deleta as mensagens passadas do bot
-
-                    
-                    # passadas = await load_json(arquivoEmbedsAuto)
-
-                    # for mensagem in passadas:
-                    #     canal = self.bot.get_channel(mensagem[1])
-                    #     try:
-                    #         msg = await canal.fetch_message(mensagem[0])
-                    #         await self.delete_item(arquivoEmbedsAuto, mensagem)
-                    #         await msg.delete()
-                    #     except discord.errors.NotFound:
-                    #         print(f'Deletada uma mensagem automática desaparecida em {canal.guild}/{canal} do arquivo')
-                    #     else:
-                    #         print(f'Deletada uma mensagem automática em {canal.guild}/{canal}')
-
-
-                    # async for message in canalProvas.history(limit=4):
-                    #     if message.author == self.bot.user:
-                    #         # print(message)
-                    #         await message.delete()
-
-                    async with canalProvas.typing():
-                        embedProvas, provasParaPeriodo = await self.criaEmbedProvas(sem)
-
-                        for prova in provasParaPeriodo:
-                            dataProva = prova['data']
-                            dia = dataProva.strftime('%d/%m/%y')
-                            diaDaSemana = self.diaSemana(dataProva.weekday())
-                            if prova['diasParaProva'] == 0:
-                                embedProvas.add_field(name=f'•**{prova["materia"]}**',
-                                                        value=f'__->**É HOJE RAPAZIADA** **{prova["nome"].upper()}** DE **{prova["materia"].upper()}**, {diaDaSemana}, {dia}__', inline=False)
-                            elif prova['diasParaProva'] == 1:
-                                embedProvas.add_field(name=f'•**{prova["materia"]}**',
-                                                        value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dia**', inline=False)
-                            else:
-                                embedProvas.add_field(name=f'•**{prova["materia"]}**',
-                                                        value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dias**', inline=False)
-
-                    mensagemEmbed = await canalProvas.send(content='@everyone', embed=embedProvas)
-                    # await self.escreveMensagem(mensagemEmbed)
-                    # await write_json(arquivoEmbedsAuto, (mensagemEmbed.id, canalProvas.id))
-                    # cursor.execute(f'SELECT id_canal FROM main')
-
-                    # sql = ("INSERT INTO main(id_mens, id_canal) VALUES(?,?)")
-                    # val = (mensagemEmbed.id, canalProvas.id)
-                    # cursor.execute(sql, val)
-                    await dbExecute(f'UPDATE {tableAvisos} SET id_mens = {mensagemEmbed.id} WHERE id_canal = {canalProvas.id}')
-                    # por algum santo motivo, quando eu escrevo num json, a task fica repetindo
-                    # imbecil, deu certo
-
-    # @aviso_provas.after_loop
-    
+                await dbExecute(f'UPDATE {tableAvisos} SET id_mens = {mensagemEmbed.id} WHERE id_canal = {canalProvas.id}')
 
 
 def setup(bot):

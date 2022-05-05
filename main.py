@@ -19,7 +19,7 @@ testeID = config['testeID']
 arquivoProvas = config['arquivoProvas']
 arquivoRespostas = config['arquivoRespostas']
 
-avisosAutomaticos = True
+avisosAutomaticos = True # para debug, primariamente
 
 with open(arquivoRespostas, encoding='utf-8') as data:
     respostas = json.load(data)
