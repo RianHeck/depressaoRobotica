@@ -65,15 +65,19 @@ def is_connected(ctx):
     voice_client = get(ctx.bot.voice_clients, guild=ctx.guild)
     return voice_client and voice_client.is_connected()
 
+def create_jsonDir():
+    current_directory = os.getcwd()
+    final_directory = os.path.join(current_directory, r'json')
+    if not os.path.exists(final_directory):
+        os.makedirs(final_directory)
 
 def load_json(filename):
     try:
+        # create_jsonDir()
         with open(filename, encoding='utf-8') as inF:
             arquivo = json.load(inF)
             return arquivo
-    except ValueError:
-        return []
-    except FileNotFoundError:
+    except ValueError or FileNotFoundError:
         return []
         
 def write_json(filename, content):
@@ -106,8 +110,8 @@ async def on_ready():
         canal = bot.get_channel(int(IDCanalProvas))
         if canal in bot.get_all_channels():
             if canal.permissions_for(canal.guild.me).read_messages and canal.permissions_for(canal.guild.me).send_messages:
-                if not plataformaWindows:
-                    aviso_provas.start(IDCanalProvas)
+                aviso_provas.start(IDCanalProvas)
+                print('enviando provas task')
             else:
                 print('Não consigo mandar mesnagens no canal de aviso de provas')
         else:
@@ -477,8 +481,10 @@ async def reseta(ctx):
 
     if ctx.author.id == int(testeID):
         aviso_provas.cancel()
+        print('cancelando')
         await asyncio.sleep(1)
         aviso_provas.start(IDCanalProvas)
+        print('recomecando')
     elif not avisosAutomaticos:
         await ctx.reply('Avisos automáticos desligados')
     else:
@@ -519,11 +525,8 @@ async def on_message(ctx):
     await bot.process_commands(ctx)
 
 
-@tasks.loop(seconds=60*60*24) # a cada 1 dia
+@tasks.loop(hours=24) # a cada 1 dia
 async def aviso_provas(ID):
-
-    with open('provas.json', encoding='utf-8') as prov:
-        provas = json.load(prov)
 
     canalProvas = bot.get_channel(int(ID))
     sem = 2 # quantidade de semanas para verificar
@@ -532,27 +535,26 @@ async def aviso_provas(ID):
     # ao inves de usar o config.json
 
     # deleta as mensagens passadas do bot
-    passadas = load_json(arquivoEmbedsAuto)
+    # passadas = load_json(arquivoEmbedsAuto)
 
-    for mensagem in passadas:
-        canal = bot.get_channel(mensagem[1])
-        try:
-            msg = await canal.fetch_message(mensagem[0])
-            await msg.delete()
-            delete_item(arquivoEmbedsAuto, mensagem)
-        except discord.errors.NotFound:
-            delete_item(arquivoEmbedsAuto, mensagem)
-            print(f'Deletada uma mensagem automática desaparecida em {canal.guild}/{canal} do arquivo')
-        else:
-            print(f'Deletada uma mensagem automática em {canal.guild}/{canal}')
+    # for mensagem in passadas:
+    #     canal = bot.get_channel(mensagem[1])
+    #     try:
+    #         msg = await canal.fetch_message(mensagem[0])
+    #         await msg.delete()
+    #         delete_item(arquivoEmbedsAuto, mensagem)
+    #     except discord.errors.NotFound:
+    #         delete_item(arquivoEmbedsAuto, mensagem)
+    #         print(f'Deletada uma mensagem automática desaparecida em {canal.guild}/{canal} do arquivo')
+    #     else:
+    #         print(f'Deletada uma mensagem automática em {canal.guild}/{canal}')
 
-    # async for message in canalProvas.history(limit=1):
-    #     if message.author == bot.user:
-    #         # print(message)
-    #         await message.delete()
+    async for message in canalProvas.history(limit=4):
+        if message.author == bot.user:
+            # print(message)
+            await message.delete()
 
     async with canalProvas.typing():
-
         embedProvas, provasParaPeriodo = await criaEmbedProvas(sem)
 
         for prova in provasParaPeriodo:
@@ -561,16 +563,17 @@ async def aviso_provas(ID):
             diaDaSemana = diaSemana(dataProva.weekday())
             if prova['diasParaProva'] == 0:
                 embedProvas.add_field(name=f'•{prova["nome"]}',
-                                      value=f'__->**É HOJE RAPAZIADA** PROVA DE {prova["nome"]}, {diaDaSemana}, {dia}__', inline=False)
+                                        value=f'__->**É HOJE RAPAZIADA** PROVA DE {prova["nome"]}, {diaDaSemana}, {dia}__', inline=False)
             elif prova['diasParaProva'] == 1:
                 embedProvas.add_field(name=f'•{prova["nome"]}',
-                                      value=f'->Prova de {prova["nome"]}, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dia**', inline=False)
+                                        value=f'->Prova de {prova["nome"]}, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dia**', inline=False)
             else:
                 embedProvas.add_field(name=f'•{prova["nome"]}',
-                                      value=f'->Prova de {prova["nome"]}, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dias**', inline=False)
+                                        value=f'->Prova de {prova["nome"]}, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dias**', inline=False)
 
-    mensagemEmbed = await canalProvas.send(content='@everyone', embed=embedProvas)
-    write_json(arquivoEmbedsAuto, (mensagemEmbed.id, canalProvas.id))
+    await canalProvas.send(content='@everyone', embed=embedProvas)
+    # write_json(arquivoEmbedsAuto, (mensagemEmbed.id, canalProvas.id))
+    # por algum santo motivo, quando eu escrevo num json, a task fica repetindo
 
 bot.run(TOKEN)
 

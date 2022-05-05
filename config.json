@@ -1,7 +1,7 @@
 {
     "prefix" : "",
-    "canalDeProvas" : "317781692226076672",
     "testeID" : "236901700475027456",
     "arquivoEmbeds": "json/embeds.json",
-    "arquivoEmbedsAuto": "json/embedsAuto.json"
+    "arquivoEmbedsAuto": "json/embedsAuto.json",
+    "arquivoProvas" : "json/provas.json"
 }   

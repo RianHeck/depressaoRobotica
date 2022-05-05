@@ -1,0 +1,67 @@
+{
+    "Cálculo 3":[
+        {"nome" :"Prova 1", "data" : "2022-03-28"},
+        {"nome" :"Prova 2", "data" : "2022-04-19"},
+        {"nome" :"Prova 3", "data" : "2022-05-10"},
+        {"nome" :"Prova 4", "data" : "2022-05-31"},
+        {"nome" :"Prova 5", "data" : "2022-06-21"},
+        {"nome" :"Prévia de Artigo", "data" : "2022-04-25"},
+        {"nome" :"Entrega de Artigo", "data" : "2022-06-14"},
+        {"nome" :"Recuperação", "data" : "2022-06-27"}
+        ],
+
+    "Probabilidade":[
+        {"nome" :"Prova 1", "data" : "2022-03-30"},
+        {"nome" :"Prova 2", "data" : "2022-04-27"},
+        {"nome" :"Prova 3", "data" : "2022-05-25"},
+        {"nome" :"Prova 4", "data" : "2022-06-22"},
+        {"nome" :"Recuperação", "data" : "2022-07-01"}
+        ],
+
+    "EDO":[
+        {"nome" :"Prova 1", "data" : "2022-04-05"},
+        {"nome" :"Prova 2", "data" : "2022-05-10"},
+        {"nome" :"Prova 3", "data" : "2022-06-06"},
+        {"nome" :"Recuperação", "data" : "2022-06-14"}
+    ],
+
+    "PCD":[
+        {"nome" :"Prova 1", "data" : "2022-04-28"},
+        {"nome" :"Prova 2", "data" : "2022-06-09"},
+        {"nome" :"Recuperação", "data" : "2022-06-30"}
+    ],
+    
+    "POO":[
+        {"nome" :"Prova 1", "data" : "2022-04-07"},
+        {"nome" :"Prova 2", "data" : "2022-05-27"},
+        {"nome" :"Recuperação", "data" : "2022-06-30"},
+        {"nome" :"Atividade 3", "data" : "2022-05-08"}
+    ],
+    
+    "Mecânica Geral":[
+        {"nome" :"Prova 1", "data" : "2022-05-02"},
+        {"nome" :"Prova 2", "data" : "2022-06-21"},
+        {"nome" :"Trabalho P1", "data" : "2022-06-27"},
+        {"nome" :"Recuperação", "data" : "2022-06-28"}
+    ],
+    
+    "HTT":[
+        {"nome" :"Prova 1", "data" : "2022-04-28"},
+        {"nome" :"Debate", "data" : "2022-05-19"},                 
+        {"nome" :"Trabalho Final", "data" : "2022-06-02"},
+        {"nome" :"Recuperação", "data" : "2022-06-23"}
+    ],
+    
+    "Física 3":[
+        {"nome" :"Prova 1", "data" : "2022-04-15"},
+        {"nome" :"Prova 2", "data" : "2022-05-20"},
+        {"nome" :"Prova 3", "data" : "2022-06-24"},
+        {"nome" :"Lista 1", "data" : "2022-04-15"},
+        {"nome" :"Lista 2", "data" : "2022-04-15"},
+        {"nome" :"Lista 3", "data" : "2022-05-20"},
+        {"nome" :"Lista 4", "data" : "2022-05-20"},
+        {"nome" :"Lista 5", "data" : "2022-05-20"},
+        {"nome" :"Recuperação", "data" : "2022-07-01"}
+    ]    
+
+}
