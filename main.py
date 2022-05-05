@@ -17,8 +17,12 @@ arquivoEmbeds = config['arquivoEmbeds']
 arquivoEmbedsAuto = config['arquivoEmbedsAuto']
 testeID = config['testeID']
 arquivoProvas = config['arquivoProvas']
+arquivoRespostas = config['arquivoRespostas']
 
 avisosAutomaticos = True
+
+with open(arquivoRespostas, encoding='utf-8') as data:
+    respostas = json.load(data)
 
 if TOKEN == '' or TOKEN == None:
     print('Sem token do Bot')
