@@ -19,6 +19,8 @@ testeID = config['testeID']
 arquivoProvas = config['arquivoProvas']
 arquivoRespostas = config['arquivoRespostas']
 
+OWNER_ID = 236901700475027456
+
 avisosAutomaticos = True # para debug, primariamente
 
 with open(arquivoRespostas, encoding='utf-8') as data:
@@ -33,6 +35,14 @@ if prefix == '':
 intents = discord.Intents.all()
 intents.members = True
 bot = commands.Bot(command_prefix=prefix,intents=intents, caseInensitive=True)
+
+
+@bot.event
+async def on_ready():
+        print(f'Conectado como {bot.user}')
+        await bot.change_presence(activity=discord.Game(f'"{prefix}comandos" para ajuda'))
+
+        print(f'Bot foi iniciado, com {len(bot.users)} usuários, em {len(bot.guilds)} servers.')
 
 for filename in os.listdir('./cogs'):
     if filename.endswith('.py') and filename != '__init__.py':

@@ -3,6 +3,7 @@ import sqlite3
 dbName = 'main.sqlite'
 tableAvisos = 'avisos'
 tableMensagens = 'mensagens'
+tablePermissoes = 'permissoes'
 
 async def returnTable(tableUsada):
     db = sqlite3.connect(dbName)

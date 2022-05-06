@@ -1,3 +1,4 @@
+# import traceback
 from discord.ext import commands, tasks
 import datetime
 import discord
@@ -6,6 +7,7 @@ from utils.db import *
 from utils.json import *
 import sys
 from utils.db import tableAvisos, tableMensagens
+from utils.checks import *
 
 sys.path.append("..")
 
@@ -41,6 +43,13 @@ class Provas(commands.Cog):
             await dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableMensagens}(
                                 id_canal INT DEFAULT 0,
                                 id_mens INT DEFAULT 0
+                            );
+                            '''
+            )
+
+            await dbExecute(f'''CREATE TABLE IF NOT EXISTS {tablePermissoes}(
+                                id_guilda INT DEFAULT 0,
+                                id_role INT DEFAULT 0
                             );
                             '''
             )
@@ -155,6 +164,7 @@ class Provas(commands.Cog):
             # delete_item(arquivoEmbeds, (mensagemEmbed.id, ctx.channel.id))
 
     @commands.command(name='adiciona')
+    @permissao()
     async def adicionaAvisos(self, ctx, canal : discord.TextChannel = -1):
         if canal == -1:
             canal = ctx.channel
@@ -170,9 +180,10 @@ class Provas(commands.Cog):
             horario = await dbReturn(f'SELECT tempo_envio FROM {tableAvisos} WHERE id_canal = {canal.id}')
             await ctx.send(f'Canal {canal} adicionado aos avisos automáticos, horário padrão: {horario[0]}')
         else:
-            await ctx.send('Este canal já foi adicionado')
+            await ctx.send(f'O canal {canal} já foi adicionado')
 
     @commands.command(name='remove')
+    @permissao()
     async def removeAvisos(self, ctx, canal : discord.TextChannel = -1):
         if canal == -1:
             canal = ctx.channel
@@ -182,22 +193,22 @@ class Provas(commands.Cog):
 
         mensagem = await dbReturn(f'SELECT * FROM {tableAvisos} WHERE id_canal = {canal.id}')
         if mensagem is not None:
-            if mensagem[1] != 0:
-                try:
+            try:
+                if mensagem[1] != 0:
                     msg = await canal.fetch_message(mensagem[1])
                     await msg.delete()
-                    # await self.delete_item(arquivoEmbedsAuto, mensagem)
-                except discord.errors.NotFound:
-                    print(f'Deletada uma mensagem automática desaparecida em {canal.guild}/{canal} do arquivo')
-                else:
-                    print(f'Deletada uma mensagem automática em {canal.guild}/{canal}')
-                finally:
-                    await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[1]}')
-        
-                await dbExecute(f'DELETE FROM {tableAvisos} WHERE id_canal = {canal.id};')
-                await ctx.send(f'Canal {canal} removido dos avisos automáticos')
+                # await self.delete_item(arquivoEmbedsAuto, mensagem)
+            except discord.errors.NotFound:
+                print(f'Deletada uma mensagem automática desaparecida em {canal.guild}/{canal} do arquivo')
             else:
-                await ctx.send('Canal não está adicionado aos avisos automáticos')
+                print(f'Deletada uma mensagem automática em {canal.guild}/{canal}')
+            finally:
+                await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[1]}')
+    
+            await dbExecute(f'DELETE FROM {tableAvisos} WHERE id_canal = {canal.id};')
+            await ctx.send(f'Canal {canal} removido dos avisos automáticos')
+        else:
+            await ctx.send(f'Canal **{canal}** não está adicionado aos avisos automáticos')
 
     
     @commands.command(name='horario')
@@ -213,14 +224,17 @@ class Provas(commands.Cog):
             horario = await dbReturn(f'''SELECT tempo_envio FROM {tableAvisos} WHERE id_canal = {canal.id};
                             ''')
 
-            mensagem = await ctx.send(f'Horário é {horario[0]} para avisos automáticos')
+            mensagem = await ctx.send(f'O horário configurado é `{horario[0]}` para **{canal}**')
             await mensagem.delete(delay=60)
         else:
-            await ctx.send('Canal não adicionado para avisos automáticos')
+            await ctx.send(f'Canal **{canal}** não adicionado para avisos automáticos')
 
     @commands.command(name='sethorario')
     #@commands.has_permissions(administrator=True)
-    @commands.has_role(958866992432050246)
+    # criar check próprio para verificar roles ou adms.
+    # guardar isso em db
+    # @commands.has_role(958866992432050246)
+    @permissao()
     async def updateHorario(self, ctx, horario = '07:00:00'):
         canal = ctx.channel
 
@@ -248,14 +262,90 @@ class Provas(commands.Cog):
             mensagem = await ctx.send(f'Horário setado para {horarioFormatadoStr} para avisos automáticos')
             await mensagem.delete(delay=60)
         else:
-            await ctx.send('Canal não adicionado para avisos automáticos')
+            await ctx.send(f'Canal **{canal}** não adicionado para avisos automáticos')
+
+    @commands.command(name='addrole')
+    @adm()
+    async def addRole(self, ctx, *, role : discord.role.Role):
+        guilda = ctx.guild
+        
+        if not role:
+            await ctx.send('Role inválida')
+            return
+
+        jaAdicionado = await dbReturn(f'SELECT id_role FROM {tablePermissoes} WHERE id_role = "{role.id}"')
+
+        if jaAdicionado is None:
+
+            await dbExecute(f'''INSERT INTO {tablePermissoes}(id_guilda,id_role) 
+                            SELECT {guilda.id}, {role.id}
+                            WHERE NOT EXISTS(SELECT 1 FROM {tablePermissoes} WHERE id_guilda = {guilda.id});
+                            ''')
+            await ctx.send(f'Role {role} adicionada')
+        else:
+            await ctx.send(f'A role **{role}** já foi adicionada')
+
+    @commands.command(name='remrole')
+    @adm()
+    async def remRole(self, ctx, *, role : discord.role.Role):
+        
+        if not role:
+            await ctx.send('Role inválida')
+            return
+
+        jaAdicionado = await dbReturn(f'SELECT id_role FROM {tablePermissoes} WHERE id_role = "{role.id}"')
+
+        if jaAdicionado:
+
+            await dbExecute(f'DELETE FROM {tablePermissoes} WHERE id_role = {role.id};')
+            await ctx.send(f'Role {role} removida')
+        else:
+            await ctx.send(f'A role **{role}** não foi adicionada')
+
+    # @commands.command()
+    # async def tipo(self, ctx, coisa : discord.role.Role):
+        
+    #     #role = ctx.guild.get_role()
+    #     await ctx.send(type(coisa))
+
+    # @remRole.error
+    # async def remroleHandler(self, ctx, error):
+    #     if isinstance(error, commands.CheckFailure):
+    #         await ctx.send('Você não tem permissão')
+    #     if isinstance(error, commands.MissingRequiredArgument):
+    #         await ctx.send('Digite uma role')
+    #     if isinstance(error, commands.RoleNotFound):
+    #         await ctx.send('Role não encontrada')
+
+    @remRole.error
+    @addRole.error
+    async def roleHandler(self, ctx, error):
+        if isinstance(error, commands.CheckFailure):
+            # await ctx.send('Você não tem permissão')
+            Embed = discord.Embed(color=0x336EFF)
+            Embed.set_image(url='https://i.imgur.com/C7webPo.png')
+            await ctx.send(embed=Embed)
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send('Digite uma role')
+        if isinstance(error, commands.RoleNotFound):
+            await ctx.send('Role não encontrada')
+        # else:
+        #     print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+        #     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+
+    @adicionaAvisos.error
+    @removeAvisos.error
+    async def avisosHandler(self, ctx, error):
+        if isinstance(error, commands.ChannelNotFound):
+            await ctx.send('Canal não encontrado')
 
     @updateHorario.error
     async def updateHorarioHandler(self, ctx, error):
-        if isinstance(error, commands.MissingPermissions) or isinstance(error, commands.MissingRole):
+        if isinstance(error, (commands.MissingPermissions, commands.MissingRole, commands.CheckFailure)):
             await ctx.send('Você não tem permissão')
 
     @commands.command(name='showall')
+    @eu()
     async def showAll(self, ctx):
         mensagens = await returnTable(tableAvisos)
         for mensagem in mensagens:
