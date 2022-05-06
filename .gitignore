@@ -1,6 +1,7 @@
 .env
 .cpp
 configMeu.json
+config.json
 venv
 __pycache__
 .vscode
@@ -8,3 +9,9 @@ __pycache__
 extras
 jogos
 adicionar.txt
+timestamp.bat
+embeds.json
+embedsAuto.json
+teste.py
+main.sqlite
+indexBCKP.py
