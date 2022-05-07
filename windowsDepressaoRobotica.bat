@@ -10,7 +10,7 @@ set "fullstamp=%YYYY%-%MM%-%DD% - %HH%:%Min%:%Sec%"
 
 echo "%fullstamp%"
 
-python index.py
+python main.py
 echo Reiniciando bot...
 timeout 5
 echo:
