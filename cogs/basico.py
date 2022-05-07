@@ -70,7 +70,7 @@ class Basico(commands.Cog):
         page2.add_field(name=f'`{prefix}roleta` [1-6]', value='Uma roleta russa, opcionalmente escreva o número de balas a ser usado', inline=False)
         page2.add_field(name=f'`{prefix}roletav` ou `{prefix}r` [1-6]', value=f'Roleta russa por comando de voz, use {prefix}carrega para chamar o bot.\nopcionalmente escreva o número de balas a ser usado', inline=False)
         page2.set_thumbnail(url=self.bot.user.avatar_url)
-        page1.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
+        page2.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
 
 
         page3 = discord.Embed (
@@ -81,7 +81,7 @@ class Basico(commands.Cog):
         page3.add_field(name=f'`{prefix}provas` [numero de semanas]', value='Mostra as provas para as próximas semanas, 2 semanas se não especificado', inline=False)
         page3.add_field(name=f'`{prefix}horario`', value='Mostra o horário das mensagens automáticas para o canal atual', inline=False)
         page3.set_thumbnail(url=self.bot.user.avatar_url)
-        page1.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
+        page3.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
 
 
         page4 = discord.Embed (
@@ -95,7 +95,7 @@ class Basico(commands.Cog):
         page4.add_field(name=f'`{prefix}addrole` (@role)', value='Permite uma role usar comandos de moderação', inline=False)
         page4.add_field(name=f'`{prefix}remrole` (@role)', value='Impede uma role usar comandos de moderação', inline=False)
         page4.set_thumbnail(url=self.bot.user.avatar_url)
-        page1.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
+        page4.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
 
 
         
