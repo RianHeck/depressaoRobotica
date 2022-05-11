@@ -1,9 +1,11 @@
+import sys
 import os
 from discord.ext import commands
 import json
 import discord
 from dotenv import load_dotenv
 
+os.chdir(os.path.dirname(sys.argv[0]))
 load_dotenv()
 
 with open('config.json') as conf:
