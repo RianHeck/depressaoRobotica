@@ -30,7 +30,7 @@ class Basico(commands.Cog):
         
         # await self.bot.process_commands(ctx)
 
-    @commands.command()
+    @commands.command(enabled=False)
     async def comandosVelho(self, ctx):
 
         embedComandos = discord.Embed(

@@ -1,12 +1,11 @@
 # import traceback
 from discord.ext import commands, tasks
 import datetime
+import sys
 import discord
 from main import avisosAutomaticos, arquivoProvas
 from utils.db import *
 from utils.json import *
-import sys
-from utils.db import tableAvisos, tableMensagens
 from utils.checks import *
 
 sys.path.append("..")
