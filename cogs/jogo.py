@@ -69,11 +69,13 @@ class Jogo(commands.Cog):
     @commands.command()
     @nao_jogando()
     async def jogar(self, ctx):
+        await ctx.message.delete()
         self.lugares_acessiveis = [['patio', 'lagoa'], ['patio', 'casa'], ['patio', 'floresta'], ['patio', 'galinheiro']]
         self.onde_esta = {'lagoa': 'banho', 'casa': 'rede', 'floresta': 'betty'}
         self.items = []
         self.lugar_atual = 'patio'
-        await ctx.reply('Utilize os comandos !ir [lugar] ou !pegar[algo]')
+        msg = await ctx.reply('Utilize os comandos !ir [lugar] ou !pegar[algo]')
+        await msg.delete(delay=30)
         self.embed = await ctx.reply(embed=self.mapa)
         await self.atualiza_mapa()
         usuarios_jogando.append(ctx.author.id)
@@ -81,8 +83,10 @@ class Jogo(commands.Cog):
     @commands.command()
     @jogando()
     async def parar(self, ctx):
+        await ctx.message.delete()
         usuarios_jogando.remove(ctx.author.id)
-        await ctx.reply('Parando jogo')
+        msg = await ctx.reply('Parando jogo')
+        await msg.delete(delay=10)
         await self.embed.delete()
 
 
