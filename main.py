@@ -5,7 +5,9 @@ import json
 import discord
 from dotenv import load_dotenv
 
-os.chdir(os.path.dirname(sys.argv[0]))
+if os.path.dirname(sys.argv[0]) != '':
+    os.chdir(os.path.dirname(sys.argv[0]))
+
 load_dotenv()
 
 with open('config.json') as conf:
