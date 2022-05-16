@@ -95,7 +95,7 @@ class Roletas(commands.Cog):
     @commands.command(aliases=['r', 'rpg'], brief='roleta russa por canal de voz')
     async def roletav(self, ctx, *, argumentos='1'):
 
-        if not ctx.message.guild.voice_client:
+        if not self.is_connected(ctx):
             await ctx.channel.send(f'Não estou conectado a nenhum canal, use {prefix}carrega')
             if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
                 await ctx.message.delete()
