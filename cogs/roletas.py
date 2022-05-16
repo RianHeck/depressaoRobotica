@@ -5,6 +5,8 @@ import asyncio
 from discord.utils import get
 from main import prefix
 
+# IMPLEMENTAR CHECKS NO LUGAR DOS IFS
+
 class Roletas(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
