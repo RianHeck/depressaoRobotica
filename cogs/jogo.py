@@ -90,8 +90,6 @@ class Jogo(commands.Cog):
         await ctx.message.delete()
 
 
-
-
     @commands.command(hidden=True)
     @jogando()
     async def ir(self, ctx, *, lugar):
