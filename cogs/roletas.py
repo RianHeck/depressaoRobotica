@@ -12,6 +12,10 @@ class Roletas(commands.Cog):
         self.bot = bot
 
     
+    async def deleta_mensagem(self, ctx):
+        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+            await ctx.message.delete()
+
     def is_connected(self, ctx):
         voice_client = get(ctx.bot.voice_clients, guild=ctx.guild)
         return voice_client and voice_client.is_connected()
@@ -54,8 +58,7 @@ class Roletas(commands.Cog):
     @commands.command(aliases=['carregar'], brief='chama o bot para canal de voz')
     async def carrega(self, ctx):
 
-        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
-            await ctx.message.delete()
+        await self.deleta_mensagem(ctx)
 
         if ctx.author.voice is None:
                 await ctx.channel.send("Você não está conectado em nenhum canal de voz")
@@ -85,8 +88,7 @@ class Roletas(commands.Cog):
     @commands.command(aliases=['descarregar'], brief='desconecta bot do canal de voz')
     async def descarrega(self, ctx):
 
-        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
-            await ctx.message.delete()
+        await self.deleta_mensagem(ctx)
 
         if self.is_connected(ctx):
             await ctx.message.guild.voice_client.disconnect()
@@ -162,8 +164,7 @@ class Roletas(commands.Cog):
         else:
             await roletaVC.move_to(ctx.author.voice.channel)
         
-        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
-            await ctx.message.delete()
+        await self.deleta_mensagem(ctx)
 
 def setup(bot):
     bot.add_cog(Roletas(bot))
