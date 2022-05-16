@@ -101,8 +101,7 @@ class Roletas(commands.Cog):
 
         if not self.is_connected(ctx):
             await ctx.channel.send(f'Não estou conectado a nenhum canal, use {prefix}carrega')
-            if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
-                await ctx.message.delete()
+            await self.deleta_mensagem(ctx)
             return
 
         if ctx.author.voice is None:
