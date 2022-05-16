@@ -69,7 +69,6 @@ class Jogo(commands.Cog):
     @commands.command()
     @nao_jogando()
     async def jogar(self, ctx):
-        await ctx.message.delete()
         self.lugares_acessiveis = [['patio', 'lagoa'], ['patio', 'casa'], ['patio', 'floresta'], ['patio', 'galinheiro']]
         self.onde_esta = {'lagoa': 'banho', 'casa': 'rede', 'floresta': 'betty'}
         self.items = []
@@ -77,17 +76,18 @@ class Jogo(commands.Cog):
         msg = await ctx.reply('Utilize os comandos !ir [lugar] ou !pegar[algo]')
         await msg.delete(delay=30)
         self.embed = await ctx.reply(embed=self.mapa)
+        await ctx.message.delete()
         await self.atualiza_mapa()
         usuarios_jogando.append(ctx.author.id)
 
     @commands.command()
     @jogando()
     async def parar(self, ctx):
-        await ctx.message.delete()
         usuarios_jogando.remove(ctx.author.id)
         msg = await ctx.reply('Parando jogo')
         await msg.delete(delay=10)
         await self.embed.delete()
+        await ctx.message.delete()
 
 
 
@@ -95,11 +95,10 @@ class Jogo(commands.Cog):
     @commands.command(hidden=True)
     @jogando()
     async def ir(self, ctx, *, lugar):
-        await ctx.message.delete()
         if self.bot_mens is not None:
             await self.bot_mens.delete()
         if lugar == self.lugar_atual:
-            await ctx.send('Você fica parado no lugar, incrível')
+            self.bot_mens = await ctx.send('Você fica parado no lugar, incrível')
             return
 
         if [f'{self.lugar_atual}', f'{lugar}'] in self.lugares_acessiveis or [f'{lugar}', f'{self.lugar_atual}'] in self.lugares_acessiveis:
@@ -117,12 +116,12 @@ class Jogo(commands.Cog):
             self.bot_mens = await ctx.send(f'Você capturou a Betty!')
             usuarios_jogando.remove(ctx.author.id)
             await self.embed.delete()
+        await ctx.message.delete()
 
     
     @commands.command(hidden=True)
     @jogando()
     async def pegar(self, ctx, *, objeto):
-        await ctx.message.delete()
         if self.bot_mens is not None:
             await self.bot_mens.delete()
         if self.lugar_atual in self.onde_esta:
@@ -144,6 +143,7 @@ class Jogo(commands.Cog):
                     self.bot_mens = await ctx.send(f'Você já pegou {objeto}')
                     return
         self.bot_mens = await ctx.send(f'Você não tem telepatia para pegar {objeto}')
+        await ctx.message.delete()
 
     @jogar.error
     async def jogarHandler(self, ctx, error):
