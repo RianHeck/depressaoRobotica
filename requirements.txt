@@ -3,3 +3,4 @@ discord-py-slash-command
 asyncio
 python-dotenv
 pynacl
+py-cord

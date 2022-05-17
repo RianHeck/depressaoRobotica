@@ -36,7 +36,7 @@ class Basico(commands.Cog):
         embedComandos = discord.Embed(
         title=f'{self.bot.user} Comandos', color=0xF0F0F0)
 
-        embedComandos.set_thumbnail(url=self.bot.user.avatar_url)
+        embedComandos.set_thumbnail(url=self.bot.user.avatar.url)
 
         embedComandos.add_field(name=f'{prefix}ping', value='Testa o ping do bot e da API do discord', inline=False)
         embedComandos.add_field(name=f'{prefix}roleta [1-6]', value='Uma roleta russa, opcionalmente escreva o número de balas a ser usado', inline=False)
@@ -57,7 +57,7 @@ class Basico(commands.Cog):
         )
         page1.add_field(name=f'`{prefix}ping`', value='Testa o ping do bot e da API do discord', inline=False)
         page1.add_field(name=f'`{prefix}comandos`', value='Mostra uma lista de comandos', inline=False)
-        page1.set_thumbnail(url=self.bot.user.avatar_url)
+        page1.set_thumbnail(url=self.bot.user.avatar.url)
         page1.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
 
         page2 = discord.Embed (
@@ -69,7 +69,7 @@ class Basico(commands.Cog):
         page2.add_field(name=f'`{prefix}descarrega`', value=f'Roleta russa por comando de voz, use {prefix}carrega para chamar o bot.\nopcionalmente escreva o número de balas a ser usado', inline=False)
         page2.add_field(name=f'`{prefix}roleta` [1-6]', value='Uma roleta russa, opcionalmente escreva o número de balas a ser usado', inline=False)
         page2.add_field(name=f'`{prefix}roletav` ou `{prefix}r` [1-6]', value=f'Roleta russa por comando de voz, use {prefix}carrega para chamar o bot.\nopcionalmente escreva o número de balas a ser usado', inline=False)
-        page2.set_thumbnail(url=self.bot.user.avatar_url)
+        page2.set_thumbnail(url=self.bot.user.avatar.url)
         page2.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
 
 
@@ -80,7 +80,7 @@ class Basico(commands.Cog):
         )
         page3.add_field(name=f'`{prefix}provas` [numero de semanas]', value='Mostra as provas para as próximas semanas, 2 semanas se não especificado', inline=False)
         page3.add_field(name=f'`{prefix}horario`', value='Mostra o horário das mensagens automáticas para o canal atual', inline=False)
-        page3.set_thumbnail(url=self.bot.user.avatar_url)
+        page3.set_thumbnail(url=self.bot.user.avatar.url)
         page3.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
 
 
@@ -94,7 +94,7 @@ class Basico(commands.Cog):
         page4.add_field(name=f'`{prefix}sethorario`', value='Muda o horário das mensagens automáticas para o canal atual', inline=False)
         page4.add_field(name=f'`{prefix}addrole` (@role)', value='Permite uma role usar comandos de moderação', inline=False)
         page4.add_field(name=f'`{prefix}remrole` (@role)', value='Impede uma role usar comandos de moderação', inline=False)
-        page4.set_thumbnail(url=self.bot.user.avatar_url)
+        page4.set_thumbnail(url=self.bot.user.avatar.url)
         page4.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
 
 
