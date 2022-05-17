@@ -31,6 +31,10 @@ class Provas(commands.Cog):
 
         if avisosAutomaticos:
             # canal = self.bot.get_channel(int(IDCanalProvas))
+
+            # VERIFICAR SE AS TABLES EXISTEM, SE NÃO EXCLUIR 1 MENSAGEM DO BOT NO CANAL
+            # DE AVISOS
+
             await dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableAvisos}(
                                 id_canal INT,
                                 id_mens INT DEFAULT 0,
