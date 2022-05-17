@@ -1,15 +1,99 @@
 from discord.ext import commands
+from discord.ui import Button, View
 import discord
 from main import prefix, testeID, respostas
 from utils.checks import *
 from utils.db import *
 import sys
 
+
 sys.path.append("..")
+
+# class MeuButton(Button):
+#     def __init__(self, label, row):
+#         super().__init__(label=label, row=row)
+
+#     async def callback(self, interaction):
+#         await interaction.response.edit_message(content="Coisa legal")
+#         return await super().callback(interaction)
+
+class MeuView(View):
+    def __init__(self, *items: discord.ui.Item, timeout: discord.Optional[float] = 180):
+        super().__init__(*items, timeout=timeout)
+        self.ultimaMens = None
+    styleVerde = discord.ButtonStyle.green
+
+    # async def __del__(self):
+    #     if self.ultimaMens != None:
+    #         await self.ultimaMens.delete()
+
+    @discord.ui.button(emoji="⬛")
+    async def button1_callback(self, button, interaction):
+        if self.ultimaMens != None:
+            await interaction.response.defer()
+            await self.ultimaMens.edit("nada")
+        else:
+            await interaction.response.send_message("nada")
+            self.ultimaMens = await interaction.original_message()
+        await self.stop()
+        
+        # await interaction.response.defer(Basico.outrafunc(channel=interaction.channel))
+        # button.disabled = True
+        # await interaction.response.edit_message(view=self)
+        # await interaction.followup.send("resposta")
+    
+    @discord.ui.button(emoji="⬆️")
+    async def button2_callback(self, button, interaction):
+        # if button.style != discord.ButtonStyle.danger:
+        #     button.style = discord.ButtonStyle.danger
+        #     await interaction.response.edit_message(view=self)
+        #     await interaction.followup.send("resposta 2")
+        # else:
+        #     button.disabled = True
+        #     await interaction.response.edit_message(view=self)
+        #     await interaction.followup.send("katchau")
+        await interaction.response.edit_message(content="cima")
+
+    @discord.ui.button(emoji="🖐️")
+    async def button3_callback(self, button, interaction):
+        await interaction.response.edit_message(content=f"{interaction.message.content}\npeguei")
+        if self.ultimaMens != None:
+            await self.ultimaMens.edit("outra coisa")
+        else:
+            await interaction.followup.send("outra coisa")
+            self.ultimaMens = await interaction.original_message()
+
+    @discord.ui.button(emoji="⬅️", row=2)
+    async def button6_callback(self, button, interaction):
+        await interaction.response.edit_message(content="esquerda")
+
+    @discord.ui.button(emoji="⬇️", row=2)
+    async def button7_callback(self, button, interaction):
+        await interaction.response.edit_message(content="baixo")
+    
+    @discord.ui.button(emoji="➡️", row=2)
+    async def button8_callback(self, button, interaction):
+        await interaction.response.edit_message(content="direita")
+    
 
 class Basico(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    # async def outrafunc(self, channel):
+    #     await channel.send("funciona muito")
+
+    @commands.command()
+    async def testa(self, ctx):
+        view = MeuView(timeout=10)
+        ui = await ctx.send("Mas como", view=view)
+        res = await view.wait()
+        if res:
+            await ctx.channel.send("É minha vez de jogar!")
+        else:
+            await ctx.channel.send("Zerou!")
+        del view
+        await ui.delete()
 
     @commands.Cog.listener()
     async def on_message(self, ctx):
@@ -36,7 +120,7 @@ class Basico(commands.Cog):
         embedComandos = discord.Embed(
         title=f'{self.bot.user} Comandos', color=0xF0F0F0)
 
-        embedComandos.set_thumbnail(url=self.bot.user.avatar.url)
+        embedComandos.set_thumbnail(url=self.bot.user.avatar_url)
 
         embedComandos.add_field(name=f'{prefix}ping', value='Testa o ping do bot e da API do discord', inline=False)
         embedComandos.add_field(name=f'{prefix}roleta [1-6]', value='Uma roleta russa, opcionalmente escreva o número de balas a ser usado', inline=False)
@@ -57,7 +141,7 @@ class Basico(commands.Cog):
         )
         page1.add_field(name=f'`{prefix}ping`', value='Testa o ping do bot e da API do discord', inline=False)
         page1.add_field(name=f'`{prefix}comandos`', value='Mostra uma lista de comandos', inline=False)
-        page1.set_thumbnail(url=self.bot.user.avatar.url)
+        page1.set_thumbnail(url=self.bot.user.avatar_url)
         page1.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
 
         page2 = discord.Embed (
@@ -69,7 +153,7 @@ class Basico(commands.Cog):
         page2.add_field(name=f'`{prefix}descarrega`', value=f'Roleta russa por comando de voz, use {prefix}carrega para chamar o bot.\nopcionalmente escreva o número de balas a ser usado', inline=False)
         page2.add_field(name=f'`{prefix}roleta` [1-6]', value='Uma roleta russa, opcionalmente escreva o número de balas a ser usado', inline=False)
         page2.add_field(name=f'`{prefix}roletav` ou `{prefix}r` [1-6]', value=f'Roleta russa por comando de voz, use {prefix}carrega para chamar o bot.\nopcionalmente escreva o número de balas a ser usado', inline=False)
-        page2.set_thumbnail(url=self.bot.user.avatar.url)
+        page2.set_thumbnail(url=self.bot.user.avatar_url)
         page2.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
 
 
@@ -80,7 +164,7 @@ class Basico(commands.Cog):
         )
         page3.add_field(name=f'`{prefix}provas` [numero de semanas]', value='Mostra as provas para as próximas semanas, 2 semanas se não especificado', inline=False)
         page3.add_field(name=f'`{prefix}horario`', value='Mostra o horário das mensagens automáticas para o canal atual', inline=False)
-        page3.set_thumbnail(url=self.bot.user.avatar.url)
+        page3.set_thumbnail(url=self.bot.user.avatar_url)
         page3.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
 
 
@@ -94,7 +178,7 @@ class Basico(commands.Cog):
         page4.add_field(name=f'`{prefix}sethorario`', value='Muda o horário das mensagens automáticas para o canal atual', inline=False)
         page4.add_field(name=f'`{prefix}addrole` (@role)', value='Permite uma role usar comandos de moderação', inline=False)
         page4.add_field(name=f'`{prefix}remrole` (@role)', value='Impede uma role usar comandos de moderação', inline=False)
-        page4.set_thumbnail(url=self.bot.user.avatar.url)
+        page4.set_thumbnail(url=self.bot.user.avatar_url)
         page4.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
 
 
