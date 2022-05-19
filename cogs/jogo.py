@@ -48,6 +48,7 @@ class Sessao:
         if self.bot_mens is not None:
             await self.bot_mens.delete()
         await self.embed.delete()
+        del usuarios_jogando[self.contexto]
 
     async def ir(self, ctx, lugar):
         if self.bot_mens is not None:
@@ -250,7 +251,6 @@ class Jogo(commands.Cog):
         else:
             await ctx.channel.send("Zerou!")
         await sessao.parar()
-        del usuarios_jogando[(ctx.author.id, ctx.channel)]
         del sessao
         
 
