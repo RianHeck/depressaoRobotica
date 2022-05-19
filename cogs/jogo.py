@@ -229,8 +229,10 @@ class Jogo(commands.Cog):
     async def jogarHandler(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
             self.bot_mens = await ctx.reply('Você já está jogando!')
+            await self.bot_mens.delete(delay=5)
         elif isinstance(error, commands.MaxConcurrencyReached):
             self.bot_mens = await ctx.reply('Espere, alguém está jogando!')
+            await self.bot_mens.delete(delay=5)
         else:
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
