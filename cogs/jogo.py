@@ -197,7 +197,9 @@ class Jogo(commands.Cog):
     async def jogar(self, ctx):
         sessao = Sessao((ctx.author.id, ctx.channel))
         await sessao.cria_mapa()
-        await ctx.message.delete()
+        if not ctx.channel.type == discord.ChannelType.private:
+            if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+                await ctx.message.delete()
         res = await sessao.view.wait()
         if res:
             delMsg = await ctx.channel.send("É minha vez de jogar!(Jogador Ocioso)")
@@ -205,7 +207,7 @@ class Jogo(commands.Cog):
             await sessao.parar()
         else:
             if 'betty' in sessao.items:
-                await ctx.channel.send(f'{ctx.author.mention}Zerou!')
+                await ctx.channel.send(f'{ctx.author.mention} Zerou!')
         del sessao
         
 
