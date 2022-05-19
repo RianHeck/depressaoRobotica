@@ -48,7 +48,8 @@ class Sessao:
         if self.bot_mens is not None:
             await self.bot_mens.delete()
         await self.embed.delete()
-        del usuarios_jogando[self.contexto]
+        self.view.stop()
+        del usuarios_jogando[(self.jogadorId, self.canal)]
 
     async def ir(self, ctx, lugar):
         if self.bot_mens is not None:
@@ -232,29 +233,21 @@ class Jogo(commands.Cog):
     @commands.command()
     @nao_jogando()
     async def jogar(self, ctx):
-        # LUGARES_ACESSESSIVEIS = [['patio', 'lagoa'], ['patio', 'casa'], ['patio', 'floresta'], ['patio', 'galinheiro']]
-        # ONDE_ESTA = {'lagoa': 'banho', 'casa': 'rede', 'floresta': 'betty'}
-        # self.items = []
-        # self.lugar_atual = 'patio'
         sessao = Sessao((ctx.author.id, ctx.channel))
         await sessao.cria_mapa()
-        # msg = await ctx.reply('Utilize os comandos !ir [lugar] ou !pegar[algo]')
-        # await msg.delete(delay=30)
-        # self.embed = await ctx.reply(embed=self.mapa)
         await ctx.message.delete()
-        # await self.atualiza_mapa()
-        # usuarios_jogando[(ctx.author.id, ctx.channel)].append(sessao)
         res = await sessao.view.wait()
         if res:
             delMsg = await ctx.channel.send("É minha vez de jogar!")
             await delMsg.delete(delay=5)
+            await sessao.parar()
         else:
-            await ctx.channel.send("Zerou!")
-        await sessao.parar()
+            if 'betty' in sessao.items:
+                await ctx.channel.send("Zerou!")
         del sessao
         
 
-    @commands.command()
+    @commands.command(enabled=False)
     @jogando()
     async def parar(self, ctx):
         #usuarios_jogando.remove((ctx.author.id, ctx.channel))
