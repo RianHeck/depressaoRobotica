@@ -194,7 +194,10 @@ class Jogo(commands.Cog):
 
     @commands.command()
     @nao_jogando()
+    @commands.max_concurrency(1)
     async def jogar(self, ctx):
+        # fazer com que a classe lide com tudo
+        # deixe o jogar apenas para criar a classe
         sessao = Sessao((ctx.author.id, ctx.channel))
         await sessao.cria_mapa()
         if not ctx.channel.type == discord.ChannelType.private:
@@ -226,6 +229,8 @@ class Jogo(commands.Cog):
     async def jogarHandler(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
             self.bot_mens = await ctx.reply('Você já está jogando!')
+        elif isinstance(error, commands.MaxConcurrencyReached):
+            self.bot_mens = await ctx.reply('Espere, alguém está jogando!')
         else:
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
