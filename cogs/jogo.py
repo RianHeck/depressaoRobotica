@@ -126,7 +126,7 @@ class jogoView(View):
         await interaction.edit_original_message(view=self)
         await self.sessao.atualiza_mapa()
 
-    @discord.ui.button(emoji="⬛", custom_id="preto")
+    @discord.ui.button(emoji="🛑", custom_id="preto")
     async def button1_callback(self, button, interaction):
         # if self.ultimaMens != None:
         #     await interaction.response.defer()
