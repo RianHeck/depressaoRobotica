@@ -17,63 +17,62 @@ sys.path.append("..")
 #         await interaction.response.edit_message(content="Coisa legal")
 #         return await super().callback(interaction)
 
-class MeuView(View):
-    def __init__(self, *items: discord.ui.Item, timeout: discord.Optional[float] = 180):
-        super().__init__(*items, timeout=timeout)
-        self.ultimaMens = None
-    styleVerde = discord.ButtonStyle.green
+# class jogoView(View):
+#     def __init__(self, *items: discord.ui.Item, timeout: discord.Optional[float] = 180):
+#         super().__init__(*items, timeout=timeout)
+#         self.ultimaMens = None
 
-    # async def __del__(self):
-    #     if self.ultimaMens != None:
-    #         await self.ultimaMens.delete()
+#     # async def __del__(self):
+#     #     if self.ultimaMens != None:
+#     #         await self.ultimaMens.delete()
 
-    @discord.ui.button(emoji="⬛")
-    async def button1_callback(self, button, interaction):
-        if self.ultimaMens != None:
-            await interaction.response.defer()
-            await self.ultimaMens.edit("nada")
-        else:
-            await interaction.response.send_message("nada")
-            self.ultimaMens = await interaction.original_message()
-        await self.stop()
+#     @discord.ui.button(emoji="⬛")
+#     async def button1_callback(self, button, interaction):
+#         if self.ultimaMens != None:
+#             await interaction.response.defer()
+#             await self.ultimaMens.edit("nada")
+#         else:
+#             await interaction.response.send_message("nada")
+#             self.ultimaMens = await interaction.original_message()
+#         await self.stop()
         
-        # await interaction.response.defer(Basico.outrafunc(channel=interaction.channel))
-        # button.disabled = True
-        # await interaction.response.edit_message(view=self)
-        # await interaction.followup.send("resposta")
+#         # await interaction.response.defer(Basico.outrafunc(channel=interaction.channel))
+#         # button.disabled = True
+#         # await interaction.response.edit_message(view=self)
+#         # await interaction.followup.send("resposta")
     
-    @discord.ui.button(emoji="⬆️")
-    async def button2_callback(self, button, interaction):
-        # if button.style != discord.ButtonStyle.danger:
-        #     button.style = discord.ButtonStyle.danger
-        #     await interaction.response.edit_message(view=self)
-        #     await interaction.followup.send("resposta 2")
-        # else:
-        #     button.disabled = True
-        #     await interaction.response.edit_message(view=self)
-        #     await interaction.followup.send("katchau")
-        await interaction.response.edit_message(content="cima")
+#     @discord.ui.button(emoji="⬆️")
+#     async def button2_callback(self, button, interaction):
+#         # if button.style != discord.ButtonStyle.danger:
+#         #     button.style = discord.ButtonStyle.danger
+#         #     await interaction.response.edit_message(view=self)
+#         #     await interaction.followup.send("resposta 2")
+#         # else:
+#         #     button.disabled = True
+#         #     await interaction.response.edit_message(view=self)
+#         #     await interaction.followup.send("katchau")
+#         await interaction.response.edit_message(content="cima")
 
-    @discord.ui.button(emoji="🖐️")
-    async def button3_callback(self, button, interaction):
-        await interaction.response.edit_message(content=f"{interaction.message.content}\npeguei")
-        if self.ultimaMens != None:
-            await self.ultimaMens.edit("outra coisa")
-        else:
-            await interaction.followup.send("outra coisa")
-            self.ultimaMens = await interaction.original_message()
+#     @discord.ui.button(emoji="🖐️")
+#     async def button3_callback(self, button, interaction):
+#         await interaction.response.edit_message(content=f"{interaction.message.content}\npeguei")
+#         if self.ultimaMens != None:
+#             await self.ultimaMens.edit("outra coisa")
+#         else:
+#             await interaction.followup.send("outra coisa")
+#             self.ultimaMens = await interaction.original_message()
 
-    @discord.ui.button(emoji="⬅️", row=2)
-    async def button6_callback(self, button, interaction):
-        await interaction.response.edit_message(content="esquerda")
+#     @discord.ui.button(emoji="⬅️", row=2)
+#     async def button6_callback(self, button, interaction):
+#         await interaction.response.edit_message(content="esquerda")
 
-    @discord.ui.button(emoji="⬇️", row=2)
-    async def button7_callback(self, button, interaction):
-        await interaction.response.edit_message(content="baixo")
+#     @discord.ui.button(emoji="⬇️", row=2)
+#     async def button7_callback(self, button, interaction):
+#         await interaction.response.edit_message(content="baixo")
     
-    @discord.ui.button(emoji="➡️", row=2)
-    async def button8_callback(self, button, interaction):
-        await interaction.response.edit_message(content="direita")
+#     @discord.ui.button(emoji="➡️", row=2)
+#     async def button8_callback(self, button, interaction):
+#         await interaction.response.edit_message(content="direita")
     
 
 class Basico(commands.Cog):
@@ -83,17 +82,21 @@ class Basico(commands.Cog):
     # async def outrafunc(self, channel):
     #     await channel.send("funciona muito")
 
-    @commands.command()
-    async def testa(self, ctx):
-        view = MeuView(timeout=10)
-        ui = await ctx.send("Mas como", view=view)
-        res = await view.wait()
-        if res:
-            await ctx.channel.send("É minha vez de jogar!")
-        else:
-            await ctx.channel.send("Zerou!")
-        del view
-        await ui.delete()
+    # @commands.Cog.listener()
+    # async def on_interaction(self, interaction):
+    #     await interaction.channel.send('clicou')
+
+    # @commands.command()
+    # async def testa(self, ctx):
+    #     view = jogoView(timeout=10)
+    #     ui = await ctx.send("Mas como", view=view)
+    #     res = await view.wait()
+    #     if res:
+    #         await ctx.channel.send("É minha vez de jogar!")
+    #     else:
+    #         await ctx.channel.send("Zerou!")
+    #     del view
+    #     await ui.delete()
 
     @commands.Cog.listener()
     async def on_message(self, ctx):
