@@ -37,6 +37,22 @@ class Sessao:
         self.mapa = PATIO
         self.bot_mens = None
 
+    async def comeca_jogo(self, ctx):
+        await self.cria_mapa()
+        if not ctx.channel.type == discord.ChannelType.private:
+            if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+                await ctx.message.delete()
+        res = await self.view.wait()
+        if res:
+            delMsg = await ctx.channel.send("É minha vez de jogar!(Jogador Ocioso)")
+            await delMsg.delete(delay=5)
+            await self.parar()
+        else:
+            if 'betty' in self.items:
+                await ctx.channel.send(f'{ctx.author.mention} Zerou!')
+        del self.view
+        del self
+
     async def cria_mapa(self):
         self.mapa = PATIO
         self.embed = await self.canal.send(embed=self.mapa, view=self.view)
@@ -194,24 +210,10 @@ class Jogo(commands.Cog):
 
     @commands.command()
     @nao_jogando()
-    @commands.max_concurrency(1)
+    # @commands.max_concurrency(1)
     async def jogar(self, ctx):
-        # fazer com que a classe lide com tudo
-        # deixe o jogar apenas para criar a classe
         sessao = Sessao((ctx.author.id, ctx.channel))
-        await sessao.cria_mapa()
-        if not ctx.channel.type == discord.ChannelType.private:
-            if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
-                await ctx.message.delete()
-        res = await sessao.view.wait()
-        if res:
-            delMsg = await ctx.channel.send("É minha vez de jogar!(Jogador Ocioso)")
-            await delMsg.delete(delay=5)
-            await sessao.parar()
-        else:
-            if 'betty' in sessao.items:
-                await ctx.channel.send(f'{ctx.author.mention} Zerou!')
-        del sessao
+        await sessao.comeca_jogo(ctx)
         
 
     @commands.command(enabled=False)

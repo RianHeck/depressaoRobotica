@@ -9,12 +9,18 @@ if os.path.dirname(sys.argv[0]) != '':
     os.chdir(os.path.dirname(sys.argv[0]))
 
 load_dotenv()
+if len(sys.argv) != 1:
+    if sys.argv[1] == '-d':
+        # imprime duas vezes????
+        print('--------MODO DE DEBUG--------')
+        TOKEN = os.getenv('DEBUGTOKEN')
+else:
+    TOKEN = os.getenv('TOKEN')
+
 
 with open('config.json') as conf:
     config = json.load(conf)
 
-# TOKEN = config['TOKEN']
-TOKEN = os.getenv('TOKEN')
 
 prefix = config['prefix']
 arquivoEmbeds = config['arquivoEmbeds']
