@@ -21,7 +21,7 @@ class Roletas(commands.Cog):
         voice_client = get(ctx.bot.voice_clients, guild=ctx.guild)
         return voice_client and voice_client.is_connected()
 
-    @commands.Cog.Listener()
+    @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         
         if member.id != self.bot.user.id:
@@ -40,7 +40,7 @@ class Roletas(commands.Cog):
                     await canalConectado.send('Cansei de segurar o revólver')
                 if not voice.is_connected():
                     break
-                
+
     @commands.command(brief='roleta russa 1-6')
     async def roleta(self, ctx, *, balas='1'):
         
