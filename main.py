@@ -45,7 +45,7 @@ if prefix == '':
 intents = discord.Intents.all()
 intents.members = True
 bot = commands.Bot(command_prefix=prefix,intents=intents, caseInensitive=True)
-
+bot.owner_id = OWNER_ID
 
 @bot.event
 async def on_ready():

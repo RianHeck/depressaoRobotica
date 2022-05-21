@@ -36,8 +36,7 @@ class Roletas(commands.Cog):
         try:
             balas = int(balas)
         except ValueError: 
-            mes = await ctx.reply(f'Me fala quando conseguir colocar "{balas}" balas no revólver')
-            await mes.delete(delay=10)
+            await ctx.reply(f'Me fala quando conseguir colocar "{balas}" balas no revólver', delete_after=10)
             return
 
         n = random.randint(1, 6)
@@ -114,27 +113,23 @@ class Roletas(commands.Cog):
 
         if ctx.author.voice.channel == ctx.message.guild.voice_client.channel:
             if ctx.voice_client.is_playing():
-                mes = await ctx.reply('Calma, tem bala pra todo mundo!:)')
-                await mes.delete(delay=10)
+                await ctx.reply('Calma, tem bala pra todo mundo!:)', delete_after=10)
             else:
                 try:
                     balas = int(argumentos)
                 except ValueError: 
-                    mes = await ctx.reply(f'Me fala quando conseguir colocar "{argumentos}" balas no revólver')
-                    await mes.delete(delay=10)
+                    await ctx.reply(f'Me fala quando conseguir colocar "{argumentos}" balas no revólver', delete_after=10)
                     return
 
                 n = random.randint(1, 6)
                 if balas < 0:
                     roletaVC.play(discord.FFmpegPCMAudio("audio/uepa.mp3"))
                     await asyncio.sleep(1)
-                    mes = await ctx.reply('Muito corajoso você')
-                    await mes.delete(delay=10)
+                    await ctx.reply('Muito corajoso você', delete_after=10)
                 elif balas == 0:
                     roletaVC.play(discord.FFmpegPCMAudio("audio/uepa.mp3"))
                 elif balas > 6:
-                    mes = await ctx.reply('Você é corajoso até demais')
-                    await mes.delete(delay=10)
+                    await ctx.reply('Você é corajoso até demais', delete_after=10)
                 elif balas == 6:
                     if ctx.invoked_with == 'rpg':
                         roletaVC.play(discord.FFmpegPCMAudio("audio/tiroG.mp3"))

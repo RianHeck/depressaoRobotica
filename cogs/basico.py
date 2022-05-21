@@ -1,5 +1,4 @@
 from discord.ext import commands
-from discord.ui import Button, View
 import discord
 from main import prefix, testeID, respostas
 from utils.checks import *
