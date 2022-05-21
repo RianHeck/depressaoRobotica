@@ -1,3 +1,4 @@
+from multiprocessing.connection import Listener
 from discord.ext import commands
 import random
 import discord
@@ -20,7 +21,26 @@ class Roletas(commands.Cog):
         voice_client = get(ctx.bot.voice_clients, guild=ctx.guild)
         return voice_client and voice_client.is_connected()
 
+    @commands.Cog.Listener()
+    async def on_voice_state_update(self, member, before, after):
+        
+        if member.id != self.bot.user.id:
+            return
 
+        elif after.channel is not None:
+            voice = after.channel.guild.voice_client
+            time = 0
+            while True:
+                await asyncio.sleep(1)
+                time = time + 1
+                if voice.is_playing() and not voice.is_paused():
+                    time = 0
+                if time >= 300:
+                    await voice.disconnect()
+                    await canalConectado.send('Cansei de segurar o revólver')
+                if not voice.is_connected():
+                    break
+                
     @commands.command(brief='roleta russa 1-6')
     async def roleta(self, ctx, *, balas='1'):
         
