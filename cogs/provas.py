@@ -360,6 +360,7 @@ class Provas(commands.Cog):
 
     @commands.command(name='reseta')
     @adm()
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def reseta(self, ctx, canalProvas : discord.TextChannel = -1):
             if canalProvas is None:
                 return
@@ -403,6 +404,14 @@ class Provas(commands.Cog):
             mensagemEmbed = await canalProvas.send(content='@everyone', embed=embedProvas)
 
             await dbExecute(f'UPDATE {tableAvisos} SET id_mens = {mensagemEmbed.id} WHERE id_canal = {canalProvas.id}')
+
+
+    @reseta.error
+    async def resetaHandler(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            await ctx.reply('Calma aí, você só pode usar esse comando a cada 15 segundos!')
+        elif isinstance(error, commands.CheckFailure):
+            await ctx.reply('Você não tem permissão para executar esse comando')
 
     @tasks.loop(minutes=1) # verifica a cada 1 minuto
     async def aviso_provas(self):
