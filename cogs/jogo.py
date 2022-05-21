@@ -3,27 +3,45 @@ from discord.ui import View, Button
 import discord
 import sys
 import traceback
+import time
 
 # depois usar db para guardar jogadores simultaneos
 usuarios_jogando = {}
 
 PATIO = discord.Embed(title='Patio', description='**LUGARES**: patio, lagoa, floresta, casa, galinheiro\n**ITEMS**: banho, rede, betty')
 PATIO.set_image(url='https://i.imgur.com/uVdpzOc.png')
+# FILE_PATIO = discord.File('images/patio.png', filename='patio.png')
+# PATIO.set_image(url='attachment://patio.png')
+
 LAGOA = discord.Embed(title='Lagoa', description='**LUGARES**: patio, lagoa, floresta, casa, galinheiro\n**ITEMS**: banho, rede, betty')
 LAGOA.set_image(url='https://i.imgur.com/ppiVZaZ.png')
+# FILE_LAGOA = discord.File('images/lagoa.png', filename='lagoa.png')
+# LAGOA.set_image(url='attachment://lagoa.png')
+
 FLORESTA = discord.Embed(title='Floresta', description='**LUGARES**: patio, lagoa, floresta, casa, galinheiro\n**ITEMS**: banho, rede, betty')
 FLORESTA.set_image(url='https://i.imgur.com/MKFUieh.png')
+# FILE_FLORESTA = discord.File('images/floresta.png', filename='floresta.png')
+# FLORESTA.set_image(url='attachment://floresta.png')
+
 CASA = discord.Embed(title='Casa', description='**LUGARES**: patio, lagoa, floresta, casa, galinheiro\n**ITEMS**: banho, rede, betty')
 CASA.set_image(url='https://i.imgur.com/ogGPewJ.png')
+# FILE_CASA = discord.File('images/casa.png', filename='casa.png')
+# CASA.set_image(url='attachment://casa.png')
+
 GALINHEIRO = discord.Embed(title='Galinheiro', description='**LUGARES**: patio, lagoa, floresta, casa, galinheiro\n**ITEMS**: banho, rede, betty')
 GALINHEIRO.set_image(url='https://i.imgur.com/kDDR9lU.png')
+# FILE_GALINHEIRO = discord.File('images/galinheiro.png', filename='galinheiro.png')
+# GALINHEIRO.set_image(url='attachment://galinheiro.png')
 
 LUGARES_ACESSESSIVEIS = [['patio', 'lagoa'], ['patio', 'casa'], ['patio', 'floresta'], ['patio', 'galinheiro']]
 ONDE_ESTA = {'lagoa': 'banho', 'casa': 'rede', 'floresta': 'betty'}
 
 class Sessao:
     def __init__(self, contexto : tuple) -> None:
-        self.jogadorId = contexto[0]
+        self.startTime = time.time()
+        self.endTime = 0
+        self.totalTime = 0
+        self.jogador = contexto[0]
         self.canal = contexto[1]
         self.view = jogoView(timeout=20, sessao=self)
 
@@ -33,8 +51,8 @@ class Sessao:
         self.lugar_atual = 'patio'
 
         self.mapas = {'patio' : PATIO, 'lagoa' : LAGOA, 'floresta' : FLORESTA, 'casa' : CASA, 'galinheiro' : GALINHEIRO}
+        # self.imagens = {'patio' : FILE_PATIO, 'lagoa' : FILE_LAGOA, 'floresta' : FILE_FLORESTA, 'casa' : FILE_CASA, 'galinheiro' : FILE_GALINHEIRO}
 
-        self.mapa = PATIO
         self.bot_mens = None
 
     async def comeca_jogo(self, ctx):
@@ -44,20 +62,20 @@ class Sessao:
                 await ctx.message.delete()
         res = await self.view.wait()
         if res:
-            delMsg = await ctx.channel.send("É minha vez de jogar!(Jogador Ocioso)")
-            await delMsg.delete(delay=5)
+            await ctx.channel.send('É minha vez de jogar!(Jogador Ocioso)', delete_after=5)
             await self.parar()
-        else:
-            if 'betty' in self.items:
-                await ctx.channel.send(f'{ctx.author.mention} Zerou!')
+        # else:
+        #     if 'betty' in self.items:
+        #         await ctx.channel.send(f'{ctx.author.mention} Zerou!')
         del self.view
         del self
 
     async def cria_mapa(self):
-        self.mapa = PATIO
-        self.embed = await self.canal.send(embed=self.mapa, view=self.view)
+        # self.embed = await self.canal.send(embed=self.mapas[self.lugar_atual], file=self.imagens[self.lugar_atual], view=self.view)
+        self.embed = await self.canal.send(embed=self.mapas[self.lugar_atual], view=self.view)
 
     async def atualiza_mapa(self):
+        # await self.embed.edit(embed=self.mapas[self.lugar_atual], file=self.imagens[self.lugar_atual], view=self.view)
         await self.embed.edit(embed=self.mapas[self.lugar_atual], view=self.view)
 
     async def parar(self):
@@ -65,7 +83,7 @@ class Sessao:
             await self.bot_mens.delete()
         await self.embed.delete()
         self.view.stop()
-        del usuarios_jogando[(self.jogadorId, self.canal)]
+        del usuarios_jogando[(self.jogador, self.canal)]
 
 
 class jogoView(View):
@@ -76,12 +94,13 @@ class jogoView(View):
 
     async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
         await self.sessao.parar()
-        await self.sessao.canal.send('Deu ruim! Fale com o maluco que mantém o GitHub.\nhttps://github.com/RiruAugusto/depressaoRobotica')
+        await self.sessao.canal.send('Deu ruim! Fale com o maluco que mantém o GitHub.\nhttps://github.com/RiruAugusto/depressaoRobotica', delete_after=15)
+        await self.sessao.canal.send(content=f'Erro:\n{error}', delete_after=15)
         return await super().on_error(error, item, interaction)
 
     async def atualiza_botoes(self, interaction):
         for x in self.children:
-            if x.custom_id != 'pegar' and x.custom_id != 'preto':
+            if x.custom_id != 'pegar' and x.custom_id != 'parar':
                 x.disabled = True
         if self.sessao.lugar_atual == 'lagoa':
             botao = [x for x in self.children if x.custom_id=="direita"][0]
@@ -102,11 +121,10 @@ class jogoView(View):
         await self.sessao.atualiza_mapa()
         self.sessao.mapas[self.sessao.lugar_atual].clear_fields()
 
-    @discord.ui.button(emoji="🛑", custom_id="preto")
+    @discord.ui.button(emoji="🛑", custom_id="parar")
     async def button1_callback(self, button, interaction):
         await interaction.response.defer()
-        parando = await self.sessao.canal.send('Parando jogo.')
-        await parando.delete(delay=5)
+        await self.sessao.canal.send('Parando jogo.', delete_after=5)
         await self.sessao.parar()
     
     @discord.ui.button(emoji="⬆️", custom_id="cima")
@@ -169,6 +187,12 @@ class jogoView(View):
         await interaction.response.defer()
         if self.sessao.lugar_atual == 'patio':
             if 'betty' in self.sessao.items:
+                self.sessao.endTime = time.time()
+                self.sessao.totalTime = round(self.sessao.endTime-self.sessao.startTime, 3)
+                if self.sessao.totalTime < 25:
+                    await self.sessao.canal.send(f'Muito rápido! Parábens {self.sessao.jogador.mention}! Você terminou em {self.sessao.totalTime}s.', delete_after=10)
+                else:
+                    await self.sessao.canal.send(f'Parábens {self.sessao.jogador.mention}! Você terminou em {self.sessao.totalTime}s.', delete_after=10)
                 await self.sessao.parar()
                 return
             else:
@@ -200,31 +224,30 @@ class Jogo(commands.Cog):
 
     def jogando():
         async def predicate(ctx):
-            return (ctx.author.id, ctx.channel) in usuarios_jogando
+            return (ctx.author, ctx.channel) in usuarios_jogando
         return commands.check(predicate)
 
     def nao_jogando():
         async def predicate(ctx):
-            return (ctx.author.id, ctx.channel) not in usuarios_jogando
+            return (ctx.author, ctx.channel) not in usuarios_jogando
         return commands.check(predicate)
 
     @commands.command()
     @nao_jogando()
     # @commands.max_concurrency(1)
     async def jogar(self, ctx):
-        sessao = Sessao((ctx.author.id, ctx.channel))
+        sessao = Sessao((ctx.author, ctx.channel))
         await sessao.comeca_jogo(ctx)
         
 
     @commands.command(enabled=False)
     @jogando()
     async def parar(self, ctx):
-        sessao = usuarios_jogando[(ctx.author.id, ctx.channel)]
+        sessao = usuarios_jogando[(ctx.author, ctx.channel)]
         await sessao.parar()
         del sessao
-        del usuarios_jogando[(ctx.author.id, ctx.channel)]
-        msg = await ctx.reply('Parando jogo')
-        await msg.delete(delay=10)
+        del usuarios_jogando[(ctx.author, ctx.channel)]
+        await ctx.reply('Parando jogo', delete_after=10)
         await ctx.message.delete()
 
     @jogar.error
