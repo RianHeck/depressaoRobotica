@@ -69,13 +69,14 @@ class Provas(commands.Cog):
                 msg = await canal.fetch_message(embed[1])
                 await msg.delete()
                 #await delete_item(arquivoEmbeds, embed)
-                await dbExecute(f'''DELETE FROM {tableMensagens}
-                            WHERE id_canal = {canal.id};''')
             except discord.errors.NotFound:
                 #await delete_item(arquivoEmbeds, embed)
                 print(f'Deletada uma mensagem desaparecida em {canal.guild}/{canal} do arquivo')
             else:
                 print(f'Deletada uma mensagem em {canal.guild}/{canal}')
+            finally:
+                await dbExecute(f'''DELETE FROM {tableMensagens}
+                            WHERE id_canal = {canal.id};''')
 
     
     def diaSemana(self, wDia):
@@ -353,17 +354,64 @@ class Provas(commands.Cog):
         mensagens = await returnTable(tableAvisos)
         for mensagem in mensagens:
             canal = self.bot.get_channel(mensagem[0])
-            await ctx.send(f'{canal.guild}/{canal} às {mensagem[2]}')
+            # usar try catch para notificar ou excluir canais que não vejo (None)
+            if canal is not None:
+                await ctx.send(f'{canal.guild}/{canal} às {mensagem[2]}')
+
+    @commands.command(name='reseta')
+    @adm()
+    async def reseta(self, ctx, canalProvas : discord.TextChannel = -1):
+            if canalProvas is None:
+                return
+            
+            if canalProvas == -1:
+                canalProvas = ctx.channel
+
+            mensagem = await dbReturn(f'SELECT id_mens FROM {tableAvisos} WHERE id_canal = "{canalProvas.id}"')
+
+            if mensagem[0] != 0:
+                try:
+                    msg = await canalProvas.fetch_message(mensagem[0])
+                    await msg.delete()
+                except discord.errors.NotFound:
+                    print(f'Deletada uma mensagem automática desaparecida em {canalProvas.guild}/{canalProvas} do arquivo')
+                else:
+                    print(f'Deletada uma mensagem automática em {canalProvas.guild}/{canalProvas}')
+                finally:
+                    await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[0]}')
+
+            sem = 2 # quantidade de semanas para verificar
+            print(f'Enviando provas task manual para {canalProvas}|{canalProvas.guild} por {ctx.author}')
+
+            async with canalProvas.typing():
+                embedProvas, provasParaPeriodo = await self.criaEmbedProvas(sem)
+
+                for prova in provasParaPeriodo:
+                    dataProva = prova['data']
+                    dia = dataProva.strftime('%d/%m/%y')
+                    diaDaSemana = self.diaSemana(dataProva.weekday())
+                    if prova['diasParaProva'] == 0:
+                        embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                                value=f'__->**É HOJE RAPAZIADA** **{prova["nome"].upper()}** DE **{prova["materia"].upper()}**, {diaDaSemana}, {dia}__', inline=False)
+                    elif prova['diasParaProva'] == 1:
+                        embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                                value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dia**', inline=False)
+                    else:
+                        embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                                value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dias**', inline=False)
+
+            mensagemEmbed = await canalProvas.send(content='@everyone', embed=embedProvas)
+
+            await dbExecute(f'UPDATE {tableAvisos} SET id_mens = {mensagemEmbed.id} WHERE id_canal = {canalProvas.id}')
 
     @tasks.loop(minutes=1) # verifica a cada 1 minuto
     async def aviso_provas(self):
-
         mensagens = await returnTable(tableAvisos)
         for mensagem in mensagens:
             canalProvas = self.bot.get_channel(mensagem[0])
 
             if canalProvas is None:
-                return
+                continue
 
             agora = datetime.datetime.now().time().replace(microsecond=0)
             tempo_setado = datetime.time.fromisoformat(mensagem[2])
@@ -385,7 +433,7 @@ class Provas(commands.Cog):
                         await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[1]}')
 
                 sem = 2 # quantidade de semanas para verificar
-                print(f'Enviando provas task para {canalProvas}')
+                print(f'Enviando provas task para {canalProvas}|{canalProvas.guild}')
 
                 async with canalProvas.typing():
                     embedProvas, provasParaPeriodo = await self.criaEmbedProvas(sem)
