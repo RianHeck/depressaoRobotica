@@ -52,6 +52,9 @@ class Roletas(commands.Cog):
         if heya not in ctx.guild.emojis:
             heya = ':smiley:'
         
+        # GUARDAR VEZES QUE SAIU VIVO SEGUIDAS E
+        # MANDAR NO CHAT, TALVEZ USAR DB
+        # SEM ID_PESSOA = 0, CASO CONTRARIO TER GUARDADO
 
         try:
             balas = int(balas)

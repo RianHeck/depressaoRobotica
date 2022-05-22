@@ -35,7 +35,8 @@
         {"nome" :"Prova 1", "data" : "2022-04-07"},
         {"nome" :"Prova 2", "data" : "2022-05-27"},
         {"nome" :"Recuperação", "data" : "2022-06-30"},
-        {"nome" :"Atividade 3", "data" : "2022-05-08"}
+        {"nome" :"Atividade 3", "data" : "2022-05-08"},
+	{"nome" :"Trabalho QT", "data" : "2022-06-08"}
     ],
     
     "Mecânica Geral":[
