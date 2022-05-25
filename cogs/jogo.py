@@ -92,6 +92,14 @@ class jogoView(View):
         self.ultimaMens = None
         self.sessao = sessao
 
+    async def interaction_check(self, interaction):
+        if interaction.user == self.sessao.jogador:
+            return True
+        else:
+            await self.sessao.canal.send(content=f'Alguém ta querendo jogar coop', delete_after=5)
+            return False
+
+
     async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
         await self.sessao.parar()
         await self.sessao.canal.send('Deu ruim! Fale com o maluco que mantém o GitHub.\nhttps://github.com/RiruAugusto/depressaoRobotica', delete_after=15)
