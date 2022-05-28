@@ -317,6 +317,7 @@ class Jogo(commands.Cog):
             description = f'Any%',
             colour = discord.Colour.dark_teal()
         )
+        page1.set_image(url='https://i.imgur.com/27HsA8G.jpg')
         for i in range (5):
             try:
                 jogador = self.bot.get_user(scoreboard[i][1])
@@ -331,6 +332,7 @@ class Jogo(commands.Cog):
             description = f'Genocide%',
             colour = discord.Colour.blurple()
         )
+        page2.set_image(url='https://i.imgur.com/4V4LwDj.png')
         for i in range (5):
             try:
                 jogador = self.bot.get_user(scoreboardGenocide[i][1])
@@ -344,6 +346,7 @@ class Jogo(commands.Cog):
             description = f'Pacifist%',
             colour = discord.Colour.dark_red()
         )
+        page3.set_image(url='https://i.imgur.com/6sYrnGj.png')
         for i in range (5):
             try:
                 jogador = self.bot.get_user(scoreboardPacifist[i][1])
