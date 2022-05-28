@@ -4,6 +4,7 @@ dbName = 'main.sqlite'
 tableAvisos = 'avisos'
 tableMensagens = 'mensagens'
 tablePermissoes = 'permissoes'
+tableScoreboard = 'scoreboard'
 
 async def returnTable(tableUsada):
     db = sqlite3.connect(dbName)
@@ -26,7 +27,7 @@ async def dbReturn(query):
     db = sqlite3.connect(dbName)
     cursor = db.cursor()
     cursor.execute(query)
-    val = cursor.fetchone()
+    val = cursor.fetchall()
     cursor.close()
     db.close()
     return val

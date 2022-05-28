@@ -4,6 +4,10 @@ import discord
 import sys
 import traceback
 import time
+from utils.db import *
+from main import prefix
+
+sys.path.append("..")
 
 # USAR DB PARA GUADAR SCOREBOARD, TOP 5 DA GUILDA PRA CADA CATEGORIA
 # USAR PAGES OU EMOJIS PARA NAVEGAR CATEGORIAS
@@ -90,6 +94,23 @@ class Sessao:
         del usuarios_jogando[(self.jogador, self.canal)]
 
 
+    async def insereScore(self, tipo):
+        guilda = self.canal.guild
+        usuario = self.jogador
+        tempo = self.totalTime
+
+        jaAdicionado = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND id_usuario = {usuario.id} AND tipo = "{tipo}");')
+        if len(jaAdicionado) != 0:
+            tempoVelho = jaAdicionado[0][3]
+            # talvez verificar tambem se eh recorde em any%
+            # preguica
+            if tempo < tempoVelho:
+                await self.canal.send(f'Novo recorde pessoal em **{tipo.capitalize()}%**! (`{tempoVelho}s` -> `{tempo}s`)')
+                await dbExecute(f'UPDATE {tableScoreboard} SET tempo = {tempo} WHERE (id_guilda = {guilda.id} AND id_usuario = {usuario.id} AND tipo = "{tipo}");')
+        else:
+            await dbExecute(f'INSERT INTO {tableScoreboard}(id_guilda, id_usuario, tipo, tempo) VALUES({guilda.id},{usuario.id},"{tipo}",{tempo});')
+
+
 class jogoView(View):
     def __init__(self, *items: discord.ui.Item, timeout: discord.Optional[float] = 180, sessao : Sessao):
         super().__init__(*items, timeout=timeout)
@@ -107,7 +128,7 @@ class jogoView(View):
 
     async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
         await self.sessao.parar()
-        await self.sessao.canal.send('Deu ruim! Fale com o maluco que mantém o GitHub.\nhttps://github.com/RiruAugusto/depressaoRobotica')
+        await self.sessao.canal.send('Deu ruim! Fale com o maluco que mantém o GitHub.\nhttps://github.com/RiruAugusto/depressaoRobotica', delete_after=60)
         await self.sessao.canal.send(content=f'Erro:\n{error}', delete_after=15)
         return await super().on_error(error, item, interaction)
 
@@ -154,7 +175,9 @@ class jogoView(View):
     async def button3_callback(self, button, interaction):
         await interaction.response.defer()
         if self.sessao.lugar_atual == 'lagoa':
-            if ONDE_ESTA[self.sessao.lugar_atual] not in self.sessao.items:
+            if 'glock' in self.sessao.items:
+                self.sessao.mapas[self.sessao.lugar_atual].add_field(name='AGORA VAI LÁ NA FLORESTA', value='NÃO ERA ISSO QUE TU QUERIA?')
+            elif ONDE_ESTA[self.sessao.lugar_atual] not in self.sessao.items:
                 self.sessao.items.append(ONDE_ESTA[self.sessao.lugar_atual])
                 self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você toma banho', value='Agora você pode ir para a casa da dona Jocelina!')
                 # await interaction.response.edit_message(content="Você toma banho")
@@ -162,7 +185,9 @@ class jogoView(View):
                 self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você já tomou banho', value='Vai lá pegar a rede na casa!')
                 # await interaction.response.edit_message(content="Você já tomou banho")
         elif self.sessao.lugar_atual == 'casa':
-            if ONDE_ESTA[self.sessao.lugar_atual] not in self.sessao.items:
+            if 'glock' in self.sessao.items:
+                self.sessao.mapas[self.sessao.lugar_atual].add_field(name='AGORA VAI LÁ NA FLORESTA', value='NÃO ERA ISSO QUE TU QUERIA?')
+            elif ONDE_ESTA[self.sessao.lugar_atual] not in self.sessao.items:
                 self.sessao.items.append(ONDE_ESTA[self.sessao.lugar_atual])
                 self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você pega a rede', value='Dá pra pegar a Betty na floresta agora!')
                 # await interaction.response.edit_message(content="Você pega a rede")
@@ -175,6 +200,7 @@ class jogoView(View):
                     self.sessao.endTime = time.time()
                     self.sessao.totalTime = round(self.sessao.endTime-self.sessao.startTime, 3)
                     await self.sessao.canal.send(f'{self.sessao.jogador.mention} METEU UM BALAÇO NA BETTY! ZEROU EM {self.sessao.totalTime}S.')
+                    await self.sessao.insereScore('genocide')
                     await self.sessao.parar()
                     return
                 if 'rede' in self.sessao.items:
@@ -201,7 +227,10 @@ class jogoView(View):
                 self.sessao.items.append('glock')
 
         else:
-            self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você tenta pegar o vento...', value='Realmente não tem nada de interessante aqui pra pegar.')
+            if 'glock' in self.sessao.items:
+                self.sessao.mapas[self.sessao.lugar_atual].add_field(name='AGORA VAI LÁ NA FLORESTA', value='NÃO ERA ISSO QUE TU QUERIA?')
+            else:
+                self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você tenta pegar o vento...', value='Realmente não tem nada de interessante aqui pra pegar.')
             # await interaction.response.edit_message(content="Não tem nada pra pegar aqui")
         await self.atualiza_botoes(interaction)
 
@@ -228,6 +257,7 @@ class jogoView(View):
                     await self.sessao.canal.send(f'Muito rápido! Parábens {self.sessao.jogador.mention}! Você terminou em {self.sessao.totalTime}s.')
                 else:
                     await self.sessao.canal.send(f'Parábens {self.sessao.jogador.mention}! Você terminou em {self.sessao.totalTime}s.')
+                await self.sessao.insereScore('pacifist')
                 await self.sessao.parar()
                 return
             else:
@@ -257,6 +287,177 @@ class jogoView(View):
 class Jogo(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+
+    # tabelas any%, pacifist% e genocide%(bioshock%)
+    # tabela local da guilda e tabela global
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        await dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableScoreboard}(
+                            id_guilda INT,
+                            id_usuario INT,
+                            tipo TEXT,
+                            tempo INT
+                        );
+                        '''
+        )
+
+    @commands.command(name='scoreboard')
+    async def scoreboard(self, ctx):
+
+        # sim, eu to fazendo 3 consultas que podiam ser 1
+        # me deixa
+        scoreboard = await self.retornaScoreboard(ctx.guild, 'any')
+        scoreboardGenocide = await self.retornaScoreboard(ctx.guild, 'genocide')
+        scoreboardPacifist = await self.retornaScoreboard(ctx.guild, 'pacifist')
+        
+        page1 = discord.Embed (
+            title = 'Scoreboard do jogo para essa Guilda!',
+            description = f'Any%',
+            colour = discord.Colour.dark_teal()
+        )
+        for i in range (5):
+            try:
+                jogador = self.bot.get_user(scoreboard[i][1])
+                tipo = scoreboard[i][2]
+                tempo = scoreboard[i][3]
+                page1.add_field(name=f'{i+1}º {jogador} - `{tempo}s` ({tipo.capitalize()}%)', value='\u200b', inline=False)
+            except IndexError:
+                break
+
+        page2 = discord.Embed (
+            title = 'Scoreboard do jogo para essa Guilda!',
+            description = f'Genocide%',
+            colour = discord.Colour.blurple()
+        )
+        for i in range (5):
+            try:
+                jogador = self.bot.get_user(scoreboardGenocide[i][1])
+                tempo = scoreboardGenocide[i][3]
+                page2.add_field(name=f'{i+1}º {jogador} - `{tempo}s`', value='\u200b', inline=False)
+            except IndexError:
+                break
+
+        page3 = discord.Embed (
+            title = 'Scoreboard do jogo para essa Guilda!',
+            description = f'Pacifist%',
+            colour = discord.Colour.dark_red()
+        )
+        for i in range (5):
+            try:
+                jogador = self.bot.get_user(scoreboardPacifist[i][1])
+                tempo = scoreboardPacifist[i][3]
+                page3.add_field(name=f'{i+1}º {jogador} - `{tempo}s`', value='\u200b', inline=False)
+            except IndexError:
+                break
+
+
+        pages = [page1, page2, page3]
+
+        message = await ctx.send(embed = page1)
+
+        await message.add_reaction('⏮')
+        await message.add_reaction('◀')
+        await message.add_reaction('▶')
+        await message.add_reaction('⏭')
+
+        def check(reaction, user):
+            return user == ctx.author
+
+        i = 0
+        reaction = None
+
+        while True:
+            if str(reaction) == '⏮':
+                i = 0
+                await message.edit(embed = pages[i])
+            elif str(reaction) == '◀':
+                if i > 0:
+                    i -= 1
+                    await message.edit(embed = pages[i])
+            elif str(reaction) == '▶':
+                if i < 2:
+                    i += 1
+                    await message.edit(embed = pages[i])
+            elif str(reaction) == '⏭':
+                i = 2
+                await message.edit(embed = pages[i])
+            
+            try:
+                reaction, user = await self.bot.wait_for('reaction_add', timeout = 40.0, check = check)
+                await message.remove_reaction(reaction, user)
+            except:
+                break
+
+        # await message.delete()
+        await message.clear_reactions()
+
+    @commands.command()
+    async def pb(self, ctx):
+        guilda = ctx.guild
+
+        score = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND id_usuario = {ctx.author.id});')
+        if len(score) != 0:
+            mens = ''
+            for i in range(len(score)):
+                mens += f'`{score[i][3]}s` em {score[i][2].capitalize()}%\n'
+            await ctx.reply(mens, delete_after=30)
+        else:
+            await ctx.reply(f'Você ainda não completou o jogo. Jogue usando o comando {prefix}jogar', delete_after=30)
+
+    async def scoreboardGuildaAll(self, guilda):
+        scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE id_guilda = {guilda.id};')
+        return scoreboard
+
+    async def scoreboardGuildaPacifist(self, guilda):
+        scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist");')
+        return scoreboard
+
+    async def scoreboardGuildaGenocide(self, guilda):
+        scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "genocide");')
+        return scoreboard
+
+
+    async def retornaScoreboard(self, guilda, tipo):
+        if tipo == 'genocide':
+            scoreboard = await self.scoreboardGuildaGenocide(guilda)
+        elif tipo == 'pacifist':
+            scoreboard = await self.scoreboardGuildaPacifist(guilda)
+        elif tipo == 'any':
+            scoreboard = await self.scoreboardGuildaAll(guilda)
+        scoreboard = sorted(scoreboard, key=lambda score: score[3])
+        return scoreboard
+
+    # @commands.command()
+    # async def retorna(self, ctx, tipo):
+    #     await self.calculaScore(ctx.guild, tipo)
+
+    # @commands.command()
+    # async def _scoreboardGuildaAll(self, ctx):
+    #     await self.calculaScore(ctx.guild, 'pacifist', 69)
+    #     guilda = ctx.guild
+    #     scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE id_guilda = {guilda.id};')
+    #     for score in scoreboard:
+    #         await ctx.send(f'{score[3]}')
+    #     return scoreboard
+
+    # @commands.command(name='retornap')
+    # async def _scoreboardGuildaPacifist(self, ctx):
+    #     guilda = ctx.guild
+    #     scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist");')
+    #     for score in scoreboard:
+    #         await ctx.send(f'{score[3]}')
+    #     return scoreboard
+
+    # @commands.command(name='retornag')
+    # async def _scoreboardGuildaGenocide(self, ctx):
+    #     guilda = ctx.guild
+    #     scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "genocide");')
+    #     for score in scoreboard:
+    #         await ctx.send(f'{score[3]}')
+    #     return scoreboard
+
 
     def jogando():
         async def predicate(ctx):
