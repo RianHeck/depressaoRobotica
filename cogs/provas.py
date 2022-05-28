@@ -44,14 +44,14 @@ class Provas(commands.Cog):
             )
             
             await dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableMensagens}(
-                                id_canal INT DEFAULT 0,
+                                id_canal INT,
                                 id_mens INT DEFAULT 0
                             );
                             '''
             )
 
             await dbExecute(f'''CREATE TABLE IF NOT EXISTS {tablePermissoes}(
-                                id_guilda INT DEFAULT 0,
+                                id_guilda INT,
                                 id_role INT DEFAULT 0
                             );
                             '''
@@ -222,11 +222,10 @@ class Provas(commands.Cog):
         if canal.permissions_for(ctx.guild.me).manage_messages:
                     await ctx.message.delete()
 
-        jaAdicionado = await dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = "{canal.id}"')
+        jaAdicionado = await dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = {canal.id};')
 
         if jaAdicionado is not None:
-            horario = await dbReturn(f'''SELECT tempo_envio FROM {tableAvisos} WHERE id_canal = {canal.id};
-                            ''')
+            horario = await dbReturn(f'SELECT tempo_envio FROM {tableAvisos} WHERE id_canal = {canal.id};')
 
             mensagem = await ctx.send(f'O horário configurado é `{horario[0]}` para **{canal}**')
             await mensagem.delete(delay=60)
