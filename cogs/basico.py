@@ -51,6 +51,8 @@ class Basico(commands.Cog):
         page1.add_field(name=f'`{prefix}ping`', value='Testa o ping do bot e da API do discord', inline=False)
         page1.add_field(name=f'`{prefix}comandos`', value='Mostra uma lista de comandos', inline=False)
         page1.add_field(name=f'`{prefix}jogar`', value='Um joguinho básico meio familiar', inline=False)
+        page1.add_field(name=f'`{prefix}scoreboard`', value='Mostra a scoreboard da guilda para o jogo', inline=False)
+        page1.add_field(name=f'`{prefix}pb`', value='Mostra seu melhor tempo em cada categoria do jogo', inline=False)
         page1.set_thumbnail(url=self.bot.user.avatar.url)
         page1.set_author(name='GitHub', url='https://github.com/RiruAugusto/depressaoRobotica', icon_url='https://i.imgur.com/97a24aM.png')
 
