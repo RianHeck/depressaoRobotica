@@ -5,6 +5,9 @@ import sys
 import traceback
 import time
 
+# USAR DB PARA GUADAR SCOREBOARD, TOP 5 DA GUILDA PRA CADA CATEGORIA
+# USAR PAGES OU EMOJIS PARA NAVEGAR CATEGORIAS
+
 # depois usar db para guardar jogadores simultaneos
 usuarios_jogando = {}
 
@@ -41,6 +44,7 @@ class Sessao:
         self.startTime = time.time()
         self.endTime = 0
         self.totalTime = 0
+        self.insistencia = 0
         self.jogador = contexto[0]
         self.canal = contexto[1]
         self.view = jogoView(timeout=20, sessao=self)
@@ -96,13 +100,14 @@ class jogoView(View):
         if interaction.user == self.sessao.jogador:
             return True
         else:
-            await self.sessao.canal.send(content=f'Alguém ta querendo jogar coop', delete_after=5)
+            await self.sessao.canal.send(content=f'Alguém ta querendo jogar coop')
+            # await interaction.response.send_message('Tá querendo acabar com o jogo do amiguinho né?', ephemeral=True)
             return False
 
 
     async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
         await self.sessao.parar()
-        await self.sessao.canal.send('Deu ruim! Fale com o maluco que mantém o GitHub.\nhttps://github.com/RiruAugusto/depressaoRobotica', delete_after=15)
+        await self.sessao.canal.send('Deu ruim! Fale com o maluco que mantém o GitHub.\nhttps://github.com/RiruAugusto/depressaoRobotica')
         await self.sessao.canal.send(content=f'Erro:\n{error}', delete_after=15)
         return await super().on_error(error, item, interaction)
 
@@ -138,6 +143,7 @@ class jogoView(View):
     @discord.ui.button(emoji="⬆️", custom_id="cima")
     async def button2_callback(self, button, interaction):
         await interaction.response.defer()
+        self.sessao.insistencia = 0
         if self.sessao.lugar_atual == 'patio':
             self.sessao.lugar_atual = 'floresta'
         elif self.sessao.lugar_atual == 'galinheiro':
@@ -165,6 +171,12 @@ class jogoView(View):
                 # await interaction.response.edit_message(content="Você já pegou a rede")
         elif self.sessao.lugar_atual == 'floresta':
             if ONDE_ESTA[self.sessao.lugar_atual] not in self.sessao.items:
+                if 'glock' in self.sessao.items:
+                    self.sessao.endTime = time.time()
+                    self.sessao.totalTime = round(self.sessao.endTime-self.sessao.startTime, 3)
+                    await self.sessao.canal.send(f'{self.sessao.jogador.mention} METEU UM BALAÇO NA BETTY! ZEROU EM {self.sessao.totalTime}S.')
+                    await self.sessao.parar()
+                    return
                 if 'rede' in self.sessao.items:
                     self.sessao.items.append(ONDE_ESTA[self.sessao.lugar_atual])
                     self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você pega a Betty', value='Leva ela de volta pro galinheiro!')
@@ -175,6 +187,19 @@ class jogoView(View):
             else:
                 self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você já pegou a Betty', value='Só levar ela pro galinheiro!')
                 # await interaction.response.edit_message(content="Você já pegou a Betty")
+        elif self.sessao.lugar_atual == 'patio':
+            if 'glock' in self.sessao.items:
+                    self.sessao.mapas[self.sessao.lugar_atual].add_field(name='AGORA VAI LÁ NA FLORESTA', value='NÃO ERA ISSO QUE TU QUERIA?')
+            elif self.sessao.insistencia == 0:
+                self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você tenta pegar o vento...', value='Realmente não tem nada de interessante aqui pra pegar.')
+                self.sessao.insistencia = 1
+            elif self.sessao.insistencia == 1:
+                self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você insiste em pegar o vento...', value='Tô falando que não tem nada de interessante aqui pra pegar.')
+                self.sessao.insistencia = 2
+            elif self.sessao.insistencia == 2:
+                self.sessao.mapas[self.sessao.lugar_atual].add_field(name='TÁ BOM, TOMA AQUI UMA GLOCK', value='VAI PEGAR AQUELA GALINHA NA FLORESTA.')
+                self.sessao.items.append('glock')
+
         else:
             self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você tenta pegar o vento...', value='Realmente não tem nada de interessante aqui pra pegar.')
             # await interaction.response.edit_message(content="Não tem nada pra pegar aqui")
@@ -183,6 +208,7 @@ class jogoView(View):
     @discord.ui.button(emoji="⬅️", row=2, custom_id="esquerda")
     async def button6_callback(self, button, interaction):
         await interaction.response.defer()
+        self.sessao.insistencia = 0
         if self.sessao.lugar_atual == 'patio':
             self.sessao.lugar_atual = 'lagoa'
         elif self.sessao.lugar_atual == 'casa':
@@ -193,14 +219,15 @@ class jogoView(View):
     @discord.ui.button(emoji="⬇️", row=2, custom_id="baixo")
     async def button7_callback(self, button, interaction):
         await interaction.response.defer()
+        self.sessao.insistencia = 0
         if self.sessao.lugar_atual == 'patio':
             if 'betty' in self.sessao.items:
                 self.sessao.endTime = time.time()
                 self.sessao.totalTime = round(self.sessao.endTime-self.sessao.startTime, 3)
                 if self.sessao.totalTime < 25:
-                    await self.sessao.canal.send(f'Muito rápido! Parábens {self.sessao.jogador.mention}! Você terminou em {self.sessao.totalTime}s.', delete_after=10)
+                    await self.sessao.canal.send(f'Muito rápido! Parábens {self.sessao.jogador.mention}! Você terminou em {self.sessao.totalTime}s.')
                 else:
-                    await self.sessao.canal.send(f'Parábens {self.sessao.jogador.mention}! Você terminou em {self.sessao.totalTime}s.', delete_after=10)
+                    await self.sessao.canal.send(f'Parábens {self.sessao.jogador.mention}! Você terminou em {self.sessao.totalTime}s.')
                 await self.sessao.parar()
                 return
             else:
@@ -213,6 +240,7 @@ class jogoView(View):
     @discord.ui.button(emoji="➡️", row=2, custom_id="direita")
     async def button8_callback(self, button, interaction):
         await interaction.response.defer()
+        self.sessao.insistencia = 0
         if self.sessao.lugar_atual == 'patio':
             if 'banho' in self.sessao.items:
                 self.sessao.lugar_atual = 'casa'
