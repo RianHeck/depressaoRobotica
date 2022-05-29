@@ -125,30 +125,26 @@ class Sessao:
         tempo = self.totalTime
 
         score = await retornaScoreboard(guilda, tipo)
-        
-        if len(score) != 0:
-            top = score[0][3]
-            if tempo < top:
-                role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "{tipo}")')
-                role = guilda.get_role(role_id[0][1])
-                if role is not None:
+        role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "{tipo}")')
+        if len(role_id) != 0:
+            role = guilda.get_role(role_id[0][1])
+            if role is not None:
+                if len(score) != 0:
+                    top = score[0][3]
+                    if tempo < top:
+                        if len(role.members) != 0:
+                            usuarioVelho = role.members[0]
+                            await usuarioVelho.remove_roles(role)
+                            await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuarioVelho.mention} - **{tipo.capitalize()}%** em `{top}s` -> {usuario.mention} - **{tipo.capitalize()}%** em `{tempo}s`')
+                        else:
+                            await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuario.mention} fez **{tipo.capitalize()}%** em `{tempo}s`')
+                        await usuario.add_roles(role)
+                else:
                     if len(role.members) != 0:
                         usuarioVelho = role.members[0]
                         await usuarioVelho.remove_roles(role)
-                        await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuarioVelho.mention} - **{tipo.capitalize()}%** em `{top}s` -> {usuario.mention} - **{tipo.capitalize()}%** em `{tempo}s`')
-                    else:
-                        await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuario.mention} fez **{tipo.capitalize()}%** em `{tempo}s`')
-                    await usuario.add_roles(role)
-        else:
-            role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "{tipo}")')
-            role = guilda.get_role(role_id[0][1])
-            if role is not None:
-                if len(role.members) != 0:
-                    usuarioVelho = role.members[0]
-                    await usuarioVelho.remove_roles(role)
-                else:
                     await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuario.mention} fez **{tipo.capitalize()}%** em `{tempo}s`')
-                await usuario.add_roles(role)
+                    await usuario.add_roles(role)
 
 
         jaAdicionado = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND id_usuario = {usuario.id} AND tipo = "{tipo}");')
@@ -481,9 +477,31 @@ class Jogo(commands.Cog):
         else:
             await ctx.reply(f'Você ainda não completou o jogo. Jogue usando o comando {prefix}jogar', delete_after=30)
 
-    # async def atualizaRoles(self, top, tempo, tipo):
-    #     if tempo < top:
-    #         role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE id_guilda = {}')
+    # @commands.command()
+    # async def atualizaRoles(self, ctx):
+    #     #guilda = self.canal.guild
+    #     #usuario = self.jogador
+    #     #tempo = self.totalTime
+    #     tipo = 'pacifist'
+    #     guilda = ctx.guild
+
+    #     guilda = self.bot.get_guild(477183409572282379)
+
+    #     for member in guilda.members:
+    #         if member.id == 302447751705264130:
+    #             role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "{tipo}")')
+    #             if len(role_id) != 0:
+    #                 role = guilda.get_role(role_id[0][1])
+                
+    #             await member.add_roles(role)
+
+        # score = await retornaScoreboard(guilda, tipo)
+        # usuario = self.bot.get_user(score[0][1])
+        # role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "{tipo}")')
+        # if len(role_id) != 0:
+        #     role = guilda.get_role(role_id[0][1])
+        
+        # await usuario.add_roles(role)
 
     # @commands.command()
     # async def retorna(self, ctx, tipo):
