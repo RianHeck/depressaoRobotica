@@ -5,6 +5,7 @@ tableAvisos = 'avisos'
 tableMensagens = 'mensagens'
 tablePermissoes = 'permissoes'
 tableScoreboard = 'scoreboard'
+tableWR = 'wr'
 
 async def returnTable(tableUsada):
     db = sqlite3.connect(dbName)

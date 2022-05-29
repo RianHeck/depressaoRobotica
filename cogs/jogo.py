@@ -43,8 +43,32 @@ GALINHEIRO.set_image(url='https://i.imgur.com/kDDR9lU.png')
 LUGARES_ACESSESSIVEIS = [['patio', 'lagoa'], ['patio', 'casa'], ['patio', 'floresta'], ['patio', 'galinheiro']]
 ONDE_ESTA = {'lagoa': 'banho', 'casa': 'rede', 'floresta': 'betty'}
 
+
+async def scoreboardGuildaAll(guilda):
+        scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE id_guilda = {guilda.id};')
+        return scoreboard
+
+async def scoreboardGuildaPacifist(guilda):
+    scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist");')
+    return scoreboard
+
+async def scoreboardGuildaGenocide(guilda):
+    scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "genocide");')
+    return scoreboard
+
+
+async def retornaScoreboard(guilda, tipo):
+    if tipo == 'genocide':
+        scoreboard = await scoreboardGuildaGenocide(guilda)
+    elif tipo == 'pacifist':
+        scoreboard = await scoreboardGuildaPacifist(guilda)
+    elif tipo == 'any':
+        scoreboard = await scoreboardGuildaAll(guilda)
+    scoreboard = sorted(scoreboard, key=lambda score: score[3])
+    return scoreboard
+
 class Sessao:
-    def __init__(self, contexto : tuple) -> None:
+    def __init__(self, contexto : tuple, bot) -> None:
         self.startTime = time.time()
         self.endTime = 0
         self.totalTime = 0
@@ -52,6 +76,7 @@ class Sessao:
         self.jogador = contexto[0]
         self.canal = contexto[1]
         self.view = jogoView(timeout=20, sessao=self)
+        self.bot = bot
 
         usuarios_jogando[contexto] = self
 
@@ -99,6 +124,33 @@ class Sessao:
         usuario = self.jogador
         tempo = self.totalTime
 
+        score = await retornaScoreboard(guilda, tipo)
+        
+        if len(score) != 0:
+            top = score[0][3]
+            if tempo < top:
+                role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "{tipo}")')
+                role = guilda.get_role(role_id[0][1])
+                if role is not None:
+                    if len(role.members) != 0:
+                        usuarioVelho = role.members[0]
+                        await usuarioVelho.remove_roles(role)
+                        await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuarioVelho.mention} - **{tipo.capitalize()}%** em `{top}s` -> {usuario.mention} - **{tipo.capitalize()}%** em `{tempo}s`')
+                    else:
+                        await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuario.mention} fez **{tipo.capitalize()}%** em `{tempo}s`')
+                    await usuario.add_roles(role)
+        else:
+            role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "{tipo}")')
+            role = guilda.get_role(role_id[0][1])
+            if role is not None:
+                if len(role.members) != 0:
+                    usuarioVelho = role.members[0]
+                    await usuarioVelho.remove_roles(role)
+                else:
+                    await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuario.mention} fez **{tipo.capitalize()}%** em `{tempo}s`')
+                await usuario.add_roles(role)
+
+
         jaAdicionado = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND id_usuario = {usuario.id} AND tipo = "{tipo}");')
         if len(jaAdicionado) != 0:
             tempoVelho = jaAdicionado[0][3]
@@ -109,6 +161,9 @@ class Sessao:
                 await dbExecute(f'UPDATE {tableScoreboard} SET tempo = {tempo} WHERE (id_guilda = {guilda.id} AND id_usuario = {usuario.id} AND tipo = "{tipo}");')
         else:
             await dbExecute(f'INSERT INTO {tableScoreboard}(id_guilda, id_usuario, tipo, tempo) VALUES({guilda.id},{usuario.id},"{tipo}",{tempo});')
+    
+        # await Jogo.atualizaRoles(top, tempo, tipo)
+            
 
 
 class jogoView(View):
@@ -302,15 +357,32 @@ class Jogo(commands.Cog):
                         );
                         '''
         )
+        await dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableWR}(
+                            id_guilda INT,
+                            id_role INT,
+                            tipo TEXT
+                        );
+                        '''
+        )
+        for guild in self.bot.guilds:
+            jaAdicionado = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guild.id});')
+            if len(jaAdicionado) == 0:
+                try:
+                    roleG = await guild.create_role(name='Genocida', color=0xcc0000)
+                    roleP = await guild.create_role(name='Pacifista', color=0xffffff)
+                    await dbExecute(f'INSERT INTO {tableWR}(id_guilda, id_role, tipo) VALUES({guild.id},{roleG.id},"genocide");')
+                    await dbExecute(f'INSERT INTO {tableWR}(id_guilda, id_role, tipo) VALUES({guild.id},{roleP.id},"pacifist");')
+                except discord.Forbidden:
+                    continue
 
     @commands.command(name='scoreboard')
     async def scoreboard(self, ctx):
 
         # sim, eu to fazendo 3 consultas que podiam ser 1
         # me deixa
-        scoreboard = await self.retornaScoreboard(ctx.guild, 'any')
-        scoreboardGenocide = await self.retornaScoreboard(ctx.guild, 'genocide')
-        scoreboardPacifist = await self.retornaScoreboard(ctx.guild, 'pacifist')
+        scoreboard = await retornaScoreboard(ctx.guild, 'any')
+        scoreboardGenocide = await retornaScoreboard(ctx.guild, 'genocide')
+        scoreboardPacifist = await retornaScoreboard(ctx.guild, 'pacifist')
         
         page1 = discord.Embed (
             title = 'Scoreboard do jogo para essa Guilda!',
@@ -409,28 +481,9 @@ class Jogo(commands.Cog):
         else:
             await ctx.reply(f'Você ainda não completou o jogo. Jogue usando o comando {prefix}jogar', delete_after=30)
 
-    async def scoreboardGuildaAll(self, guilda):
-        scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE id_guilda = {guilda.id};')
-        return scoreboard
-
-    async def scoreboardGuildaPacifist(self, guilda):
-        scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist");')
-        return scoreboard
-
-    async def scoreboardGuildaGenocide(self, guilda):
-        scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "genocide");')
-        return scoreboard
-
-
-    async def retornaScoreboard(self, guilda, tipo):
-        if tipo == 'genocide':
-            scoreboard = await self.scoreboardGuildaGenocide(guilda)
-        elif tipo == 'pacifist':
-            scoreboard = await self.scoreboardGuildaPacifist(guilda)
-        elif tipo == 'any':
-            scoreboard = await self.scoreboardGuildaAll(guilda)
-        scoreboard = sorted(scoreboard, key=lambda score: score[3])
-        return scoreboard
+    # async def atualizaRoles(self, top, tempo, tipo):
+    #     if tempo < top:
+    #         role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE id_guilda = {}')
 
     # @commands.command()
     # async def retorna(self, ctx, tipo):
@@ -476,7 +529,7 @@ class Jogo(commands.Cog):
     @nao_jogando()
     # @commands.max_concurrency(1)
     async def jogar(self, ctx):
-        sessao = Sessao((ctx.author, ctx.channel))
+        sessao = Sessao((ctx.author, ctx.channel), self.bot)
         await sessao.comeca_jogo(ctx)
         
 
