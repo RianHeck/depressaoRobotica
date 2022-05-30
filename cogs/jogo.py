@@ -120,44 +120,50 @@ class Sessao:
 
 
     async def insereScore(self, tipo):
-        guilda = self.canal.guild
-        usuario = self.jogador
-        tempo = self.totalTime
+        if not self.canal.type == discord.ChannelType.private:
+            guilda = self.canal.guild
+            usuario = self.jogador
+            tempo = self.totalTime
 
-        score = await retornaScoreboard(guilda, tipo)
-        role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "{tipo}")')
-        if len(role_id) != 0:
-            role = guilda.get_role(role_id[0][1])
-            if role is not None:
-                if len(score) != 0:
-                    top = score[0][3]
-                    if tempo < top:
+            # criar checks pra verificar se a pessoa tem as roles
+            # pacifista ou genocida e ter comandos so pra elas
+
+            # depois revisar esse pesadelo de codigo
+            # quando tiver tempo
+            score = await retornaScoreboard(guilda, tipo)
+            role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "{tipo}")')
+            if len(role_id) != 0:
+                role = guilda.get_role(role_id[0][1])
+                if role is not None:
+                    if len(score) != 0:
+                        top = score[0][3]
+                        if tempo < top:
+                            if len(role.members) != 0:
+                                usuarioVelho = role.members[0]
+                                await usuarioVelho.remove_roles(role)
+                                await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuarioVelho.mention} - **{tipo.capitalize()}%** em `{top}s` -> {usuario.mention} - **{tipo.capitalize()}%** em `{tempo}s`')
+                            else:
+                                await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuario.mention} fez **{tipo.capitalize()}%** em `{tempo}s`')
+                            await usuario.add_roles(role)
+                    else:
                         if len(role.members) != 0:
                             usuarioVelho = role.members[0]
                             await usuarioVelho.remove_roles(role)
-                            await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuarioVelho.mention} - **{tipo.capitalize()}%** em `{top}s` -> {usuario.mention} - **{tipo.capitalize()}%** em `{tempo}s`')
-                        else:
-                            await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuario.mention} fez **{tipo.capitalize()}%** em `{tempo}s`')
+                        await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuario.mention} fez **{tipo.capitalize()}%** em `{tempo}s`')
                         await usuario.add_roles(role)
-                else:
-                    if len(role.members) != 0:
-                        usuarioVelho = role.members[0]
-                        await usuarioVelho.remove_roles(role)
-                    await self.canal.send(f'NOVO WR SUUUUUUUUUUUUUUUUUUUU\n {usuario.mention} fez **{tipo.capitalize()}%** em `{tempo}s`')
-                    await usuario.add_roles(role)
 
 
-        jaAdicionado = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND id_usuario = {usuario.id} AND tipo = "{tipo}");')
-        if len(jaAdicionado) != 0:
-            tempoVelho = jaAdicionado[0][3]
-            # talvez verificar tambem se eh recorde em any%
-            # preguica
-            if tempo < tempoVelho:
-                await self.canal.send(f'Novo recorde pessoal em **{tipo.capitalize()}%**! (`{tempoVelho}s` -> `{tempo}s`)')
-                await dbExecute(f'UPDATE {tableScoreboard} SET tempo = {tempo} WHERE (id_guilda = {guilda.id} AND id_usuario = {usuario.id} AND tipo = "{tipo}");')
-        else:
-            await dbExecute(f'INSERT INTO {tableScoreboard}(id_guilda, id_usuario, tipo, tempo) VALUES({guilda.id},{usuario.id},"{tipo}",{tempo});')
-    
+            jaAdicionado = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND id_usuario = {usuario.id} AND tipo = "{tipo}");')
+            if len(jaAdicionado) != 0:
+                tempoVelho = jaAdicionado[0][3]
+                # talvez verificar tambem se eh recorde em any%
+                # preguica
+                if tempo < tempoVelho:
+                    await self.canal.send(f'Novo recorde pessoal em **{tipo.capitalize()}%**! (`{tempoVelho}s` -> `{tempo}s`)')
+                    await dbExecute(f'UPDATE {tableScoreboard} SET tempo = {tempo} WHERE (id_guilda = {guilda.id} AND id_usuario = {usuario.id} AND tipo = "{tipo}");')
+            else:
+                await dbExecute(f'INSERT INTO {tableScoreboard}(id_guilda, id_usuario, tipo, tempo) VALUES({guilda.id},{usuario.id},"{tipo}",{tempo});')
+        
         # await Jogo.atualizaRoles(top, tempo, tipo)
             
 
@@ -184,21 +190,30 @@ class jogoView(View):
         return await super().on_error(error, item, interaction)
 
     async def atualiza_botoes(self, interaction):
-        for x in self.children:
-            if x.custom_id != 'pegar' and x.custom_id != 'parar':
-                x.disabled = True
         if self.sessao.lugar_atual == 'lagoa':
-            botao = [x for x in self.children if x.custom_id=="direita"][0]
-            botao.disabled = False
+            for x in self.children:
+                if x.custom_id == 'pegar' or x.custom_id == 'parar' or x.custom_id=='direita':
+                    x.disabled = False
+                else:
+                    x.disabled = True
         elif self.sessao.lugar_atual == 'floresta':
-            botao = [x for x in self.children if x.custom_id=="baixo"][0]
-            botao.disabled = False
+            for x in self.children:
+                if x.custom_id == 'pegar' or x.custom_id == 'parar' or x.custom_id=='baixo':
+                    x.disabled = False
+                else:
+                    x.disabled = True
         elif self.sessao.lugar_atual == 'casa':
-            botao = [x for x in self.children if x.custom_id=="esquerda"][0]
-            botao.disabled = False
+            for x in self.children:
+                if x.custom_id == 'pegar' or x.custom_id == 'parar' or x.custom_id=='esquerda':
+                    x.disabled = False
+                else:
+                    x.disabled = True
         elif self.sessao.lugar_atual == 'galinheiro':
-            botao = [x for x in self.children if x.custom_id=="cima"][0]
-            botao.disabled = False
+            for x in self.children:
+                if x.custom_id == 'pegar' or x.custom_id == 'parar' or x.custom_id=='cima':
+                    x.disabled = False
+                else:
+                    x.disabled = True
         else:
             for x in self.children:
                 x.disabled = False
@@ -360,18 +375,22 @@ class Jogo(commands.Cog):
                         );
                         '''
         )
+        # fazer isso em um comando para adm
         for guild in self.bot.guilds:
             jaAdicionado = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guild.id});')
             if len(jaAdicionado) == 0:
                 try:
                     roleG = await guild.create_role(name='Genocida', color=0xcc0000)
+                    print(f'Criando cargo "Genocida" em {guild} com id {roleG.id}')
                     roleP = await guild.create_role(name='Pacifista', color=0xffffff)
+                    print(f'Criando cargo "Pacifista" em {guild} com id {roleP.id}')
                     await dbExecute(f'INSERT INTO {tableWR}(id_guilda, id_role, tipo) VALUES({guild.id},{roleG.id},"genocide");')
                     await dbExecute(f'INSERT INTO {tableWR}(id_guilda, id_role, tipo) VALUES({guild.id},{roleP.id},"pacifist");')
                 except discord.Forbidden:
                     continue
 
     @commands.command(name='scoreboard')
+    @commands.guild_only()
     async def scoreboard(self, ctx):
 
         # sim, eu to fazendo 3 consultas que podiam ser 1
@@ -465,6 +484,7 @@ class Jogo(commands.Cog):
         await message.clear_reactions()
 
     @commands.command()
+    @commands.guild_only()
     async def pb(self, ctx):
         guilda = ctx.guild
 
@@ -543,7 +563,7 @@ class Jogo(commands.Cog):
             return (ctx.author, ctx.channel) not in usuarios_jogando
         return commands.check(predicate)
 
-    @commands.command()
+    @commands.command(aliases=['Jogar', 'pegagalinha'])
     @nao_jogando()
     # @commands.max_concurrency(1)
     async def jogar(self, ctx):
@@ -577,6 +597,15 @@ class Jogo(commands.Cog):
     async def comandosHandler(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
             await ctx.reply('Você não está jogando!')
+        else:
+            print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+
+    @scoreboard.error
+    @pb.error
+    async def dmHandler(self, ctx, error):
+        if isinstance(error, commands.NoPrivateMessage):
+            await ctx.reply('Esse comando só pode ser usado em uma guilda!')
         else:
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
