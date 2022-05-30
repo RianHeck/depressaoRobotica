@@ -9,8 +9,12 @@ from main import prefix
 
 sys.path.append("..")
 
-# USAR DB PARA GUADAR SCOREBOARD, TOP 5 DA GUILDA PRA CADA CATEGORIA
-# USAR PAGES OU EMOJIS PARA NAVEGAR CATEGORIAS
+# COMANDO PARA VERIFICAR SE A PESSOA CERTA ESTA COM
+# OS CARGOS PACIFISTA E GENOCIDA
+# TAXAR PESSOA QUE ESTA COM O CARGO ERRONEAMENTE
+
+# GUARDAR TAMBEM A DATA EM QUE O HIGHSCORE FOI ALCANCADO
+# COLOCAR MANUAL PARA OS QUE JÁ TEM
 
 # depois usar db para guardar jogadores simultaneos
 usuarios_jogando = {}
@@ -240,7 +244,19 @@ class jogoView(View):
     @discord.ui.button(emoji="🖐️", custom_id="pegar")
     async def button3_callback(self, button, interaction):
         await interaction.response.defer()
-        if self.sessao.lugar_atual == 'lagoa':
+        if self.sessao.lugar_atual == 'patio':
+            if 'glock' in self.sessao.items:
+                    self.sessao.mapas[self.sessao.lugar_atual].add_field(name='AGORA VAI LÁ NA FLORESTA', value='NÃO ERA ISSO QUE TU QUERIA?')
+            elif self.sessao.insistencia == 0:
+                self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você tenta pegar o vento...', value='Realmente não tem nada de interessante aqui pra pegar.')
+                self.sessao.insistencia = 1
+            elif self.sessao.insistencia == 1:
+                self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você insiste em pegar o vento...', value='Tô falando que não tem nada de interessante aqui pra pegar.')
+                self.sessao.insistencia = 2
+            elif self.sessao.insistencia == 2:
+                self.sessao.mapas[self.sessao.lugar_atual].add_field(name='TÁ BOM, TOMA AQUI UMA GLOCK', value='VAI PEGAR AQUELA GALINHA NA FLORESTA.')
+                self.sessao.items.append('glock')
+        elif self.sessao.lugar_atual == 'lagoa':
             if 'glock' in self.sessao.items:
                 self.sessao.mapas[self.sessao.lugar_atual].add_field(name='AGORA VAI LÁ NA FLORESTA', value='NÃO ERA ISSO QUE TU QUERIA?')
             elif ONDE_ESTA[self.sessao.lugar_atual] not in self.sessao.items:
@@ -279,19 +295,6 @@ class jogoView(View):
             else:
                 self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você já pegou a Betty', value='Só levar ela pro galinheiro!')
                 # await interaction.response.edit_message(content="Você já pegou a Betty")
-        elif self.sessao.lugar_atual == 'patio':
-            if 'glock' in self.sessao.items:
-                    self.sessao.mapas[self.sessao.lugar_atual].add_field(name='AGORA VAI LÁ NA FLORESTA', value='NÃO ERA ISSO QUE TU QUERIA?')
-            elif self.sessao.insistencia == 0:
-                self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você tenta pegar o vento...', value='Realmente não tem nada de interessante aqui pra pegar.')
-                self.sessao.insistencia = 1
-            elif self.sessao.insistencia == 1:
-                self.sessao.mapas[self.sessao.lugar_atual].add_field(name='Você insiste em pegar o vento...', value='Tô falando que não tem nada de interessante aqui pra pegar.')
-                self.sessao.insistencia = 2
-            elif self.sessao.insistencia == 2:
-                self.sessao.mapas[self.sessao.lugar_atual].add_field(name='TÁ BOM, TOMA AQUI UMA GLOCK', value='VAI PEGAR AQUELA GALINHA NA FLORESTA.')
-                self.sessao.items.append('glock')
-
         else:
             if 'glock' in self.sessao.items:
                 self.sessao.mapas[self.sessao.lugar_atual].add_field(name='AGORA VAI LÁ NA FLORESTA', value='NÃO ERA ISSO QUE TU QUERIA?')
@@ -405,6 +408,7 @@ class Jogo(commands.Cog):
             colour = discord.Colour.dark_teal()
         )
         page1.set_image(url='https://i.imgur.com/27HsA8G.jpg')
+        page1.set_footer(text=f'Se você suspeita que as roles estão com as pessoas erradas, use {prefix}cobra')
         for i in range (5):
             try:
                 jogador = self.bot.get_user(scoreboard[i][1])
@@ -420,6 +424,7 @@ class Jogo(commands.Cog):
             colour = discord.Colour.blurple()
         )
         page2.set_image(url='https://i.imgur.com/4V4LwDj.png')
+        page2.set_footer(text=f'Se você suspeita que as roles estão com as pessoas erradas, use {prefix}cobra')
         for i in range (5):
             try:
                 jogador = self.bot.get_user(scoreboardGenocide[i][1])
@@ -434,6 +439,7 @@ class Jogo(commands.Cog):
             colour = discord.Colour.dark_red()
         )
         page3.set_image(url='https://i.imgur.com/6sYrnGj.png')
+        page3.set_footer(text=f'Se você suspeita que as roles estão com as pessoas erradas, use {prefix}cobra')
         for i in range (5):
             try:
                 jogador = self.bot.get_user(scoreboardPacifist[i][1])
@@ -496,6 +502,60 @@ class Jogo(commands.Cog):
             await ctx.reply(mens, delete_after=30)
         else:
             await ctx.reply(f'Você ainda não completou o jogo. Jogue usando o comando {prefix}jogar', delete_after=30)
+
+    @commands.command()
+    @commands.guild_only()
+    async def cobra(self, ctx):
+        guilda = ctx.guild
+        tranquilo = True
+        scoreboardG = await scoreboardGuildaGenocide(guilda)
+        scoreboardP = await scoreboardGuildaPacifist(guilda)
+        roleG_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "genocide")')
+        roleP_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist")')
+        if len(scoreboardG) != 0 and len(roleG_id) != 0:
+            roleG = guilda.get_role(roleG_id[0][1])
+            top1_score = scoreboardG[0]
+            top1_id = top1_score[1]
+            #top1_user = self.bot.get_user(top1_id)
+            for member in guilda.members:
+                if member.id == top1_id:
+                    top1_member = member
+            if roleG not in top1_member.roles:
+                tranquilo = False
+                await ctx.send(f'{top1_member.mention} não estava com a role Genocida, e deveria ter!')
+                await top1_member.add_roles(roleG)
+            
+            for member in roleG.members:
+                if member != top1_member:
+                    tranquilo = False   
+                    await ctx.send(f'{member.mention} estava com a role Genocida, e não deveria ter!')
+                    await member.remove_roles(roleG)
+        else:
+            await ctx.send(f'Ninguém jogou ainda, ou o bot não tem permissão para criar as roles!')
+        if len(scoreboardP) != 0 and len(roleP_id) != 0:
+            roleP = guilda.get_role(roleP_id[0][1])
+            top1_score = scoreboardP[0]
+            top1_id = top1_score[1]
+            #top1_user = self.bot.get_user(top1_id)
+            for member in guilda.members:
+                if member.id == top1_id:
+                    top1_member = member
+            if roleP not in top1_member.roles:
+                tranquilo = False  
+                await ctx.send(f'{top1_member.mention} não estava com a role Pacifista, e deveria ter!')
+                await top1_member.add_roles(roleP)
+            
+            for member in roleP.members:
+                if member != top1_member:
+                    tranquilo = False  
+                    await ctx.send(f'{member.mention} estava com a role Pacifista, e não deveria ter!')
+                    await member.remove_roles(roleP)
+        else:
+            await ctx.send(f'Ninguém jogou ainda, ou o bot não tem permissão para criar as roles!')
+
+        if tranquilo:
+            await ctx.send(f'Tudo parece estar correto!')
+
 
     # @commands.command()
     # async def atualizaRoles(self, ctx):
