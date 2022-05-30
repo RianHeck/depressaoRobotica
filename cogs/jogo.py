@@ -503,8 +503,9 @@ class Jogo(commands.Cog):
         else:
             await ctx.reply(f'Você ainda não completou o jogo. Jogue usando o comando {prefix}jogar', delete_after=30)
 
-    @commands.command()
+    @commands.command(aliases=['cobrar'])
     @commands.guild_only()
+    @commands.bot_has_permissions(manage_roles=True)
     async def cobra(self, ctx):
         guilda = ctx.guild
         tranquilo = True
@@ -556,6 +557,13 @@ class Jogo(commands.Cog):
         if tranquilo:
             await ctx.send(f'Tudo parece estar correto!')
 
+    @cobra.error
+    async def cobraHandler(self, ctx, error):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send('Não tenho permissão para gerenciar roles!')
+        else:
+            print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
     # @commands.command()
     # async def atualizaRoles(self, ctx):
