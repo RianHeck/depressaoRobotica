@@ -532,7 +532,8 @@ class Jogo(commands.Cog):
                     await ctx.send(f'{member.mention} estava com a role Genocida, e não deveria ter!')
                     await member.remove_roles(roleG)
         else:
-            await ctx.send(f'Ninguém jogou ainda, ou o bot não conseguiu criar as roles!')
+            tranquilo = False
+            await ctx.send(f'Ninguém jogou ainda, ou o bot não conseguiu criar a role Genocida!')
         if len(scoreboardP) != 0 and len(roleP_id) != 0:
             roleP = guilda.get_role(roleP_id[0][1])
             top1_score = scoreboardP[0]
@@ -552,7 +553,8 @@ class Jogo(commands.Cog):
                     await ctx.send(f'{member.mention} estava com a role Pacifista, e não deveria ter!')
                     await member.remove_roles(roleP)
         else:
-            await ctx.send(f'Ninguém jogou ainda, ou o bot não conseguiu criar as roles!')
+            tranquilo = False
+            await ctx.send(f'Ninguém jogou ainda, ou o bot não conseguiu criar a role Pacifista!')
 
         if tranquilo:
             await ctx.send(f'Tudo parece estar correto!')
