@@ -508,8 +508,8 @@ class Jogo(commands.Cog):
     async def cobra(self, ctx):
         guilda = ctx.guild
         tranquilo = True
-        scoreboardG = await scoreboardGuildaGenocide(guilda)
-        scoreboardP = await scoreboardGuildaPacifist(guilda)
+        scoreboardG = await retornaScoreboard(guilda, 'genocide')
+        scoreboardP = await retornaScoreboard(guilda, 'pacifist')
         roleG_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "genocide")')
         roleP_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist")')
         if len(scoreboardG) != 0 and len(roleG_id) != 0:
@@ -531,7 +531,7 @@ class Jogo(commands.Cog):
                     await ctx.send(f'{member.mention} estava com a role Genocida, e não deveria ter!')
                     await member.remove_roles(roleG)
         else:
-            await ctx.send(f'Ninguém jogou ainda, ou o bot não tem permissão para criar as roles!')
+            await ctx.send(f'Ninguém jogou ainda, ou o bot não conseguiu criar as roles!')
         if len(scoreboardP) != 0 and len(roleP_id) != 0:
             roleP = guilda.get_role(roleP_id[0][1])
             top1_score = scoreboardP[0]
@@ -551,7 +551,7 @@ class Jogo(commands.Cog):
                     await ctx.send(f'{member.mention} estava com a role Pacifista, e não deveria ter!')
                     await member.remove_roles(roleP)
         else:
-            await ctx.send(f'Ninguém jogou ainda, ou o bot não tem permissão para criar as roles!')
+            await ctx.send(f'Ninguém jogou ainda, ou o bot não conseguiu criar as roles!')
 
         if tranquilo:
             await ctx.send(f'Tudo parece estar correto!')
