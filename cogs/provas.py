@@ -94,8 +94,15 @@ class Provas(commands.Cog):
         hojeString = datetime.date.today().strftime('%d/%m/%y')
         diaDaSemana = hoje.weekday()
 
-        embedProvas = discord.Embed(
-        title=f'**{self.diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)', color=0x336EFF)
+        FIM = datetime.date(2022, 7, 6)
+        diasParaFim = (FIM-hoje).days
+
+        if diasParaFim == 0:
+            embedProvas = discord.Embed(
+            title=f'**{self.diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)\nACABO RAPAZIADA, É ISSO. ATÉ AGOSTO!', color=0x336EFF)
+        else:
+            embedProvas = discord.Embed(
+            title=f'**{self.diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)\nFaltam {diasParaFim} dias para o fim do semestre.', color=0x336EFF)
 
         provasParaPeriodo = []
         for materia in provas:
