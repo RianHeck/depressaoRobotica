@@ -193,13 +193,13 @@ class Provas(commands.Cog):
             canal = ctx.channel
 
         if canal.permissions_for(ctx.guild.me).manage_messages:
-                    await ctx.message.delete()
+            await ctx.message.delete()
 
         mensagem = await dbReturn(f'SELECT * FROM {tableAvisos} WHERE id_canal = {canal.id}')
         if mensagem is not None:
             try:
-                if mensagem[1] != 0:
-                    msg = await canal.fetch_message(mensagem[1])
+                if mensagem[0][1] != 0:
+                    msg = await canal.fetch_message(mensagem[0][1])
                     await msg.delete()
                 # await self.delete_item(arquivoEmbedsAuto, mensagem)
             except discord.errors.NotFound:
@@ -207,7 +207,7 @@ class Provas(commands.Cog):
             else:
                 print(f'Deletada uma mensagem automática em {canal.guild}/{canal}')
             finally:
-                await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[1]}')
+                await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[0][1]}')
     
             await dbExecute(f'DELETE FROM {tableAvisos} WHERE id_canal = {canal.id};')
             await ctx.send(f'Canal {canal} removido dos avisos automáticos')
@@ -222,12 +222,12 @@ class Provas(commands.Cog):
         if canal.permissions_for(ctx.guild.me).manage_messages:
                     await ctx.message.delete()
 
-        jaAdicionado = await dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = {canal.id};')
+        jaAdicionado = await dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = {canal.id}')
 
-        if jaAdicionado is not None:
-            horario = await dbReturn(f'SELECT tempo_envio FROM {tableAvisos} WHERE id_canal = {canal.id};')
+        if jaAdicionado[0][0] is not None:
+            horario = await dbReturn(f'SELECT tempo_envio FROM {tableAvisos} WHERE id_canal = {canal.id}')
 
-            mensagem = await ctx.send(f'O horário configurado é `{horario[0]}` para **{canal}**')
+            mensagem = await ctx.send(f'O horário configurado é `{horario[0][0]}` para **{canal}**')
             await mensagem.delete(delay=60)
         else:
             await ctx.send(f'Canal **{canal}** não adicionado para avisos automáticos')
