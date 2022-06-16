@@ -6,6 +6,7 @@ tableMensagens = 'mensagens'
 tablePermissoes = 'permissoes'
 tableScoreboard = 'scoreboard'
 tableWR = 'wr'
+tableRPG = 'rpg'
 
 async def returnTable(tableUsada):
     db = sqlite3.connect(dbName)
@@ -30,5 +31,14 @@ async def dbReturn(query):
     cursor.execute(query)
     val = cursor.fetchall()
     cursor.close()
+    db.close()
+    return val
+
+async  def dbReturnDict(query):
+    db = sqlite3.connect(dbName)
+    db.row_factory = sqlite3.Row
+    cursor = db.cursor()
+    cursor.execute(query)
+    val = [dict(row) for row in cursor.fetchall()]
     db.close()
     return val

@@ -82,7 +82,7 @@ class Basico(commands.Cog):
         )
         page4.add_field(name=f'`{prefix}adiciona` [#canal]', value='Adiciona um canal para ter avisos automáticos de provas.\nSe não houver canal, usa o canal atual', inline=False)
         page4.add_field(name=f'`{prefix}remove` [#canal]', value='Remove um canal dos avisos automáticos de provas.\nSe não houver canal, usa o canal atual', inline=False)
-        page4.add_field(name=f'`{prefix}sethorario` HH[:MM:SS]', value='Muda o horário das mensagens automáticas para o canal atual', inline=False)
+        page4.add_field(name=f'`{prefix}sethorario` (HH)[:MM:SS] [#canal]', value='Muda o horário das mensagens automáticas para um canal, escolhe o atual se não especificado', inline=False)
         page4.add_field(name=f'`{prefix}addrole` (@role)', value='Permite uma role usar comandos de moderação', inline=False)
         page4.add_field(name=f'`{prefix}remrole` (@role)', value='Impede uma role usar comandos de moderação', inline=False)
 
