@@ -444,7 +444,7 @@ class Provas(commands.Cog):
             t1 = datetime.timedelta(minutes=1)
             t2 = datetime.timedelta(seconds=0)
 
-            if(diferenca > t2 and diferenca < t1):
+            if(diferenca >= t2 and diferenca < t1):
                 if mensagem[1] != 0:
                     try:
                         msg = await canalProvas.fetch_message(mensagem[1])
