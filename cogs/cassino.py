@@ -50,7 +50,7 @@ class cassinoView(View):
         self.clear_items()
         self.embed.clear_fields()
         self.embed.add_field(name='Jogo Encerrado', value='\u200b', inline=False)
-        self.embed.add_field(name='Pontos', value=f'Seus Pontos: {self.pontosJogador}\nPontos Bot: {self.pontosBot}', inline=False)
+        self.embed.add_field(name='Pontos', value=f'Seus Pontos {self.sessao.jogador.mention}: {self.pontosJogador}\nPontos Bot: {self.pontosBot}', inline=False)
         await self.embedMensagem.edit(embed=self.embed, view=self)
         self.stop()
         del usuarios_jogando[(self.sessao.jogador, self.sessao.canal)]
