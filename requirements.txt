@@ -3,4 +3,5 @@ discord-py-slash-command
 asyncio
 python-dotenv
 pynacl
+numpy
 https://github.com/Pycord-Development/pycord/tarball/master
