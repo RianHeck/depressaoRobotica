@@ -1,4 +1,3 @@
-from logging.config import valid_ident
 from random import randint
 import discord
 from discord.ext import commands
@@ -39,10 +38,24 @@ class cassinoView(View):
         self.ultimaCarta = 0
         self.vezDoJogador = True
         await self.embedComeco()
+        res = await self.wait()
+        if res:
+            await self.encerra()
         # self.embedMensagem = await self.sessao.canal.send(embed=self.embed, view=self)
         # if self.embedMensagem == 0:
         #     self.embedMensagem = await self.sessao.canal.send(embed=self.embed, view=self)
         # await self.atualizaEmbed()
+
+    async def encerra(self):
+        self.clear_items()
+        self.embed.clear_fields()
+        self.embed.add_field(name='Jogo Encerrado', value='\u200b', inline=False)
+        self.embed.add_field(name='Pontos', value=f'Seus Pontos: {self.pontosJogador}\nPontos Bot: {self.pontosBot}', inline=False)
+        await self.embedMensagem.edit(embed=self.embed, view=self)
+        self.stop()
+        del usuarios_jogando[(self.sessao.jogador, self.sessao.canal)]
+        del self.sessao
+        del self
 
     async def embedComeco(self):
         self.embed.clear_fields()
@@ -94,6 +107,10 @@ class cassinoView(View):
         elif self.totalCartasBot < self.totalCartasJogador:
             self.pontosJogador += 1
             self.embed.add_field(name='Você ganhou!', value='\u200b', inline=False)
+        elif self.totalCartasBot == self.totalCartasJogador:
+            self.pontosBot += 1
+            self.pontosJogador += 1
+            self.embed.add_field(name='Os dois ganharam!', value='\u200b', inline=False)
 
 
         await self.embedMensagem.edit(embed=self.embed, view=self)
@@ -119,10 +136,10 @@ class cassinoView(View):
                 await asyncio.sleep(1)
         
         await self.finalizaRodada()
-        await asyncio.sleep(3)
+        await asyncio.sleep(2)
         await self.comeca()
 
-    @discord.ui.button(emoji="🎲", custom_id="pedir_carta")
+    @discord.ui.button(label='Pedir Carta', custom_id="pedir_carta", style=discord.ButtonStyle.primary)
     async def pedir_callback(self, button, interaction):
         if not self.vezDoJogador:
             await interaction.response.send_message('Vez do Bot, espera', ephemeral=True)
@@ -136,7 +153,7 @@ class cassinoView(View):
             self.vezDoJogador = False
             await self.jogadaBot()
 
-    @discord.ui.button(emoji="🖐️", custom_id="parar_de_pedir")
+    @discord.ui.button(label="Parar de Pedir", custom_id="parar_de_pedir", style=discord.ButtonStyle.secondary)
     async def parar_callback(self, button, interaction):
         if not self.vezDoJogador:
             await interaction.response.send_message('Vez do Bot, espera', ephemeral=True)
@@ -145,6 +162,10 @@ class cassinoView(View):
         await interaction.response.defer()
         self.vezDoJogador = False
         await self.jogadaBot()
+
+    @discord.ui.button(label="Encerrar Jogo", custom_id="encerrar", style=discord.ButtonStyle.danger)
+    async def encerrar_callback(self, button, interaction):
+        await self.encerra()
 
 class Cassino(commands.Cog):
     def __init__(self, bot):
