@@ -537,6 +537,9 @@ class Jogo(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_permissions(manage_roles=True)
     async def cobra(self, ctx):
+        # separar a verificação em outra função, e retorna 1 se
+        # corrigiu genocide, 2 se corrigiu pacifist e 0 se tudo tranquilo
+        # reutilizar a função aqui e antes das funções apenas para as roles (!teste)
         guilda = ctx.guild
         tranquilo = True
         scoreboardG = await retornaScoreboard(guilda, 'genocide')
@@ -589,7 +592,7 @@ class Jogo(commands.Cog):
         if tranquilo:
             await ctx.send(f'Tudo parece estar correto!')
 
-    @commands.command()
+    @commands.command(enabled=False)
     @tem_roleG()
     async def teste(self, ctx):
         await ctx.send('você é genocida')
