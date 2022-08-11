@@ -47,6 +47,37 @@ GALINHEIRO.set_image(url='https://i.imgur.com/kDDR9lU.png')
 LUGARES_ACESSESSIVEIS = [['patio', 'lagoa'], ['patio', 'casa'], ['patio', 'floresta'], ['patio', 'galinheiro']]
 ONDE_ESTA = {'lagoa': 'banho', 'casa': 'rede', 'floresta': 'betty'}
 
+def jogando():
+    async def predicate(ctx):
+        return (ctx.author, ctx.channel) in usuarios_jogando
+    return commands.check(predicate)
+
+def nao_jogando():
+    async def predicate(ctx):
+        return (ctx.author, ctx.channel) not in usuarios_jogando
+    return commands.check(predicate)
+
+def tem_roleG():
+    async def predicate(ctx):
+        guilda = ctx.guild
+        roleG_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "genocide")')
+        if len(roleG_id) != 0:
+            roleG = guilda.get_role(roleG_id[0][1])
+            if roleG in ctx.author.roles:
+                return True
+        return False
+    return commands.check(predicate)
+
+def tem_roleP():
+    async def predicate(ctx):
+        guilda = ctx.guild
+        roleP_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist")')
+        if len(roleP_id) != 0:
+            roleP = guilda.get_role(roleP_id[0][1])
+            if roleP in ctx.author.roles:
+                return True
+        return False
+    return commands.check(predicate)
 
 async def scoreboardGuildaAll(guilda):
         scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE id_guilda = {guilda.id};')
@@ -72,7 +103,7 @@ async def retornaScoreboard(guilda, tipo):
     return scoreboard
 
 class Sessao:
-    def __init__(self, contexto : tuple, bot) -> None:
+    def __init__(self, contexto : tuple) -> None:
         self.startTime = time.time()
         self.endTime = 0
         self.totalTime = 0
@@ -80,7 +111,6 @@ class Sessao:
         self.jogador = contexto[0]
         self.canal = contexto[1]
         self.view = jogoView(timeout=20, sessao=self)
-        self.bot = bot
 
         usuarios_jogando[contexto] = self
 
@@ -507,6 +537,9 @@ class Jogo(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_permissions(manage_roles=True)
     async def cobra(self, ctx):
+        # separar a verificação em outra função, e retorna 1 se
+        # corrigiu genocide, 2 se corrigiu pacifist e 0 se tudo tranquilo
+        # reutilizar a função aqui e antes das funções apenas para as roles (!teste)
         guilda = ctx.guild
         tranquilo = True
         scoreboardG = await retornaScoreboard(guilda, 'genocide')
@@ -559,6 +592,11 @@ class Jogo(commands.Cog):
         if tranquilo:
             await ctx.send(f'Tudo parece estar correto!')
 
+    @commands.command(enabled=False)
+    @tem_roleG()
+    async def teste(self, ctx):
+        await ctx.send('você é genocida')
+
     @cobra.error
     async def cobraHandler(self, ctx, error):
         if isinstance(error, commands.MissingPermissions):
@@ -567,77 +605,12 @@ class Jogo(commands.Cog):
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
-    # @commands.command()
-    # async def atualizaRoles(self, ctx):
-    #     #guilda = self.canal.guild
-    #     #usuario = self.jogador
-    #     #tempo = self.totalTime
-    #     tipo = 'pacifist'
-    #     guilda = ctx.guild
-
-    #     guilda = self.bot.get_guild(477183409572282379)
-
-    #     for member in guilda.members:
-    #         if member.id == 302447751705264130:
-    #             role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "{tipo}")')
-    #             if len(role_id) != 0:
-    #                 role = guilda.get_role(role_id[0][1])
-                
-    #             await member.add_roles(role)
-
-        # score = await retornaScoreboard(guilda, tipo)
-        # usuario = self.bot.get_user(score[0][1])
-        # role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "{tipo}")')
-        # if len(role_id) != 0:
-        #     role = guilda.get_role(role_id[0][1])
-        
-        # await usuario.add_roles(role)
-
-    # @commands.command()
-    # async def retorna(self, ctx, tipo):
-    #     await self.calculaScore(ctx.guild, tipo)
-
-    # @commands.command()
-    # async def _scoreboardGuildaAll(self, ctx):
-    #     await self.calculaScore(ctx.guild, 'pacifist', 69)
-    #     guilda = ctx.guild
-    #     scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE id_guilda = {guilda.id};')
-    #     for score in scoreboard:
-    #         await ctx.send(f'{score[3]}')
-    #     return scoreboard
-
-    # @commands.command(name='retornap')
-    # async def _scoreboardGuildaPacifist(self, ctx):
-    #     guilda = ctx.guild
-    #     scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist");')
-    #     for score in scoreboard:
-    #         await ctx.send(f'{score[3]}')
-    #     return scoreboard
-
-    # @commands.command(name='retornag')
-    # async def _scoreboardGuildaGenocide(self, ctx):
-    #     guilda = ctx.guild
-    #     scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "genocide");')
-    #     for score in scoreboard:
-    #         await ctx.send(f'{score[3]}')
-    #     return scoreboard
-
-
-    def jogando():
-        async def predicate(ctx):
-            return (ctx.author, ctx.channel) in usuarios_jogando
-        return commands.check(predicate)
-
-    def nao_jogando():
-        async def predicate(ctx):
-            return (ctx.author, ctx.channel) not in usuarios_jogando
-        return commands.check(predicate)
 
     @commands.command(aliases=['Jogar', 'pegagalinha'])
     @nao_jogando()
     # @commands.max_concurrency(1)
     async def jogar(self, ctx):
-        sessao = Sessao((ctx.author, ctx.channel), self.bot)
+        sessao = Sessao((ctx.author, ctx.channel))
         await sessao.comeca_jogo(ctx)
         
 
@@ -650,6 +623,14 @@ class Jogo(commands.Cog):
         del usuarios_jogando[(ctx.author, ctx.channel)]
         await ctx.reply('Parando jogo', delete_after=10)
         await ctx.message.delete()
+
+    @teste.error
+    async def jogoRolesHandler(self, ctx, error):
+        if isinstance(error, commands.CheckFailure):
+            await ctx.reply(f'Você não tem a role necessária. Se você tem o recorde, use {prefix}cobra')
+        else:
+            print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
     @jogar.error
     async def jogarHandler(self, ctx, error):

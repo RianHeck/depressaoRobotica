@@ -1,4 +1,4 @@
-# import traceback
+import traceback
 from discord.ext import commands, tasks
 import datetime
 import sys
@@ -182,14 +182,14 @@ class Provas(commands.Cog):
         
         jaAdicionado = await dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = "{canal.id}"')
 
-        if jaAdicionado is None:
+        if not jaAdicionado:
 
             await dbExecute(f'''INSERT INTO {tableAvisos}(id_canal,id_mens) 
                             SELECT {canal.id}, 0
                             WHERE NOT EXISTS(SELECT 1 FROM {tableAvisos} WHERE id_canal = {canal.id});
                             ''')
             horario = await dbReturn(f'SELECT tempo_envio FROM {tableAvisos} WHERE id_canal = {canal.id}')
-            await ctx.send(f'Canal {canal} adicionado aos avisos automáticos, horário padrão: {horario[0]}')
+            await ctx.send(f'Canal {canal} adicionado aos avisos automáticos, horário padrão: {horario[0][0]}')
         else:
             await ctx.send(f'O canal {canal} já foi adicionado')
 
@@ -199,23 +199,23 @@ class Provas(commands.Cog):
         if canal == -1:
             canal = ctx.channel
 
-        if canal.permissions_for(ctx.guild.me).manage_messages:
-                    await ctx.message.delete()
+        # if canal.permissions_for(ctx.guild.me).manage_messages:
+        #     await ctx.message.delete()
 
         mensagem = await dbReturn(f'SELECT * FROM {tableAvisos} WHERE id_canal = {canal.id}')
-        if mensagem is not None:
-            try:
-                if mensagem[1] != 0:
-                    msg = await canal.fetch_message(mensagem[1])
+        if mensagem:
+            if mensagem[0][1] != 0:
+                try:
+                    msg = await canal.fetch_message(mensagem[0][1])
                     await msg.delete()
-                # await self.delete_item(arquivoEmbedsAuto, mensagem)
-            except discord.errors.NotFound:
-                print(f'Deletada uma mensagem automática desaparecida em {canal.guild}/{canal} do arquivo')
-            else:
-                print(f'Deletada uma mensagem automática em {canal.guild}/{canal}')
-            finally:
-                await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[1]}')
-    
+                    # await self.delete_item(arquivoEmbedsAuto, mensagem)
+                except discord.errors.NotFound:
+                    print(f'Deletada uma mensagem automática desaparecida em {canal.guild}/{canal} do arquivo')
+                else:
+                    print(f'Deletada uma mensagem automática em {canal.guild}/{canal}')
+                finally:
+                    await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[0][1]}')
+        
             await dbExecute(f'DELETE FROM {tableAvisos} WHERE id_canal = {canal.id};')
             await ctx.send(f'Canal {canal} removido dos avisos automáticos')
         else:
@@ -226,15 +226,15 @@ class Provas(commands.Cog):
     async def showHorario(self, ctx):
         canal = ctx.channel
 
-        if canal.permissions_for(ctx.guild.me).manage_messages:
-                    await ctx.message.delete()
+        # if canal.permissions_for(ctx.guild.me).manage_messages:
+        #             await ctx.message.delete()
 
-        jaAdicionado = await dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = {canal.id};')
+        jaAdicionado = await dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = {canal.id}')
 
-        if jaAdicionado is not None:
-            horario = await dbReturn(f'SELECT tempo_envio FROM {tableAvisos} WHERE id_canal = {canal.id};')
+        if jaAdicionado:
+            horario = await dbReturn(f'SELECT tempo_envio FROM {tableAvisos} WHERE id_canal = {canal.id}')
 
-            mensagem = await ctx.send(f'O horário configurado é `{horario[0]}` para **{canal}**')
+            mensagem = await ctx.send(f'O horário configurado é `{horario[0][0]}` para **{canal}**')
             await mensagem.delete(delay=60)
         else:
             await ctx.send(f'Canal **{canal}** não adicionado para avisos automáticos')
@@ -245,20 +245,21 @@ class Provas(commands.Cog):
     # guardar isso em db
     # @commands.has_role(958866992432050246)
     @permissao()
-    async def updateHorario(self, ctx, horario = '07:00:00'):
-        canal = ctx.channel
+    async def updateHorario(self, ctx, horario, canal : discord.TextChannel = -1):
+        if canal == -1:
+            canal = ctx.channel
 
         # não pegar canal por argumento, usar ctx.channel
         # gerenciar permissões com roles, apenas adms e tal
         # talvez permitir apenas um canal de avisos por guilda
         # !horario para verificar e !setHorario para mudar
 
-        if canal.permissions_for(ctx.guild.me).manage_messages:
-                    await ctx.message.delete()
+        # if canal.permissions_for(ctx.guild.me).manage_messages:
+        #             await ctx.message.delete()
 
         jaAdicionado = await dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = "{canal.id}"')
 
-        if jaAdicionado is not None:
+        if jaAdicionado:
 
             try:
                 horarioFormatado = datetime.time.fromisoformat(horario)
@@ -269,7 +270,7 @@ class Provas(commands.Cog):
             await dbExecute(f'''UPDATE {tableAvisos} SET tempo_envio = '{horarioFormatado}' WHERE id_canal = {canal.id};
                             ''')
             horarioFormatadoStr = datetime.time.isoformat(horarioFormatado, timespec='auto')
-            mensagem = await ctx.send(f'Horário setado para {horarioFormatadoStr} para avisos automáticos')
+            mensagem = await ctx.send(f'Horário setado para {horarioFormatadoStr} para avisos automáticos em **{canal}**')
             await mensagem.delete(delay=60)
         else:
             await ctx.send(f'Canal **{canal}** não adicionado para avisos automáticos')
@@ -285,7 +286,7 @@ class Provas(commands.Cog):
 
         jaAdicionado = await dbReturn(f'SELECT id_role FROM {tablePermissoes} WHERE id_role = "{role.id}"')
 
-        if jaAdicionado is None:
+        if not jaAdicionado:
 
             await dbExecute(f'''INSERT INTO {tablePermissoes}(id_guilda,id_role) 
                             SELECT {guilda.id}, {role.id}
@@ -353,11 +354,15 @@ class Provas(commands.Cog):
     async def updateHorarioHandler(self, ctx, error):
         if isinstance(error, (commands.MissingPermissions, commands.MissingRole, commands.CheckFailure)):
             await ctx.send('Você não tem permissão')
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send('Digite um horário')
+        elif isinstance(error, commands.ChannelNotFound):
+            await ctx.send('Canal não encontrado')
 
     @commands.command(name='showall')
     @eu()
     async def showAll(self, ctx):
-        mensagens = await returnTable(tableAvisos)
+        mensagens = await returnTable(tableAvisos) 
         for mensagem in mensagens:
             canal = self.bot.get_channel(mensagem[0])
             # usar try catch para notificar ou excluir canais que não vejo (None)
@@ -366,26 +371,25 @@ class Provas(commands.Cog):
 
     @commands.command(name='reseta')
     @adm()
-    @commands.cooldown(1, 15, commands.BucketType.user)
+    # @commands.cooldown(1, 15, commands.BucketType.user)
     async def reseta(self, ctx, canalProvas : discord.TextChannel = -1):
-            if canalProvas is None:
-                return
-            
             if canalProvas == -1:
                 canalProvas = ctx.channel
 
             mensagem = await dbReturn(f'SELECT id_mens FROM {tableAvisos} WHERE id_canal = "{canalProvas.id}"')
-
-            if mensagem[0] != 0:
+            if not mensagem:
+                await ctx.send(f'Canal **{canalProvas}** não adicionado para avisos automáticos')
+                return
+            if mensagem[0][0] != 0:
                 try:
-                    msg = await canalProvas.fetch_message(mensagem[0])
+                    msg = await canalProvas.fetch_message(mensagem[0][0])
                     await msg.delete()
                 except discord.errors.NotFound:
                     print(f'Deletada uma mensagem automática desaparecida em {canalProvas.guild}/{canalProvas} do arquivo')
                 else:
                     print(f'Deletada uma mensagem automática em {canalProvas.guild}/{canalProvas}')
                 finally:
-                    await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[0]}')
+                    await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[0][0]}')
 
             sem = 2 # quantidade de semanas para verificar
             print(f'Enviando provas task manual para {canalProvas}|{canalProvas.guild} por {ctx.author}')
@@ -418,6 +422,11 @@ class Provas(commands.Cog):
             await ctx.reply('Calma aí, você só pode usar esse comando a cada 15 segundos!')
         elif isinstance(error, commands.CheckFailure):
             await ctx.reply('Você não tem permissão para executar esse comando')
+        elif isinstance(error,commands.ChannelNotFound):
+            await ctx.reply('Não encontrei esse canal')
+        # else:
+        #     print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+        #     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
     @tasks.loop(minutes=1) # verifica a cada 1 minuto
     async def aviso_provas(self):
@@ -435,7 +444,7 @@ class Provas(commands.Cog):
             t1 = datetime.timedelta(minutes=1)
             t2 = datetime.timedelta(seconds=0)
 
-            if(diferenca > t2 and diferenca < t1):
+            if(diferenca >= t2 and diferenca < t1):
                 if mensagem[1] != 0:
                     try:
                         msg = await canalProvas.fetch_message(mensagem[1])
