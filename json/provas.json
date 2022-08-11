@@ -1,68 +1,52 @@
 {
-    "Cálculo 3":[
-        {"nome" :"Prova 1", "data" : "2022-03-28"},
-        {"nome" :"Prova 2", "data" : "2022-04-19"},
-        {"nome" :"Prova 3", "data" : "2022-05-10"},
-        {"nome" :"Prova 4", "data" : "2022-05-31"},
-        {"nome" :"Prova 5", "data" : "2022-06-21"},
-        {"nome" :"Prévia de Artigo", "data" : "2022-04-25"},
-        {"nome" :"Entrega de Artigo", "data" : "2022-06-14"},
-        {"nome" :"Recuperação", "data" : "2022-06-27"}
+    "Cálculo 4B":[
+        {"nome" :"Prova 1", "data" : "2022-09-06"},
+        {"nome" :"Prova 2", "data" : "2022-10-04"},
+        {"nome" :"Prova 3", "data" : "2022-11-01"},
+        {"nome" :"Prova 4", "data" : "2022-11-29"},
+        {"nome" :"CCH", "data" : "2022-11-29"},
+        {"nome" :"Recuperação", "data" : "2022-12-12"}
         ],
 
-    "Probabilidade":[
-        {"nome" :"Prova 1", "data" : "2022-03-30"},
-        {"nome" :"Prova 2", "data" : "2022-04-27"},
-        {"nome" :"Prova 3", "data" : "2022-05-25"},
-        {"nome" :"Prova 4", "data" : "2022-06-22"},
-        {"nome" :"Recuperação", "data" : "2022-07-01"}
+    "Cálculo Numérico":[
+        {"nome" :"Prova 1", "data" : "2022-09-28"},
+        {"nome" :"Prova 2", "data" : "2022-12-02"},
+        {"nome" :"Trabalho Escrito", "data" : "2022-12-07"},
+        {"nome" :"Recuperação", "data" : "2022-12-16"}
         ],
 
-    "EDO":[
-        {"nome" :"Prova 1", "data" : "2022-04-05"},
-        {"nome" :"Prova 2", "data" : "2022-05-10"},
-        {"nome" :"Prova 3", "data" : "2022-06-07"},
-        {"nome" :"Recuperação", "data" : "2022-06-14"}
+    "Circuitos Elétricos 1":[
+        {"nome" :"Prova 1", "data" : "2022-09-26"},
+        {"nome" :"Prova 2", "data" : "2022-11-07"},
+        {"nome" :"Prova 3", "data" : "2022-12-12"},
+        {"nome" :"Recuperação", "data" : "2022-12-20"}
     ],
 
-    "PCD":[
-        {"nome" :"Prova 1", "data" : "2022-04-28"},
-        {"nome" :"Prova 2", "data" : "2022-06-09"},
-        {"nome" :"Recuperação", "data" : "2022-06-30"}
+    "Teoria de Computação":[
+        {"nome" :"Prova 1", "data" : "2022-09-08"},
+        {"nome" :"Prova 2", "data" : "2022-10-20"},
+        {"nome" :"Prova 3", "data" : "2022-12-08"},
+        {"nome" :"Recuperação", "data" : "2022-12-15"}
     ],
     
-    "POO":[
-        {"nome" :"Prova 1", "data" : "2022-04-07"},
-        {"nome" :"Prova 2", "data" : "2022-05-27"},
-        {"nome" :"Recuperação", "data" : "2022-06-30"},
-        {"nome" :"Atividade 3", "data" : "2022-05-08"},
-	{"nome" :"Trabalho QT", "data" : "2022-06-08"}
+    "Economia":[
+        {"nome" :"Prova 1", "data" : "2022-09-28"},
+        {"nome" :"Prova 2 Entrega", "data" : "2022-11-23"},
+        {"nome" :"Prova 2 Seminário", "data" : "2022-11-30"},
+        {"nome" :"Recuperação", "data" : "2022-12-07"}
     ],
     
     "Mecânica Geral":[
-        {"nome" :"Prova 1", "data" : "2022-05-02"},
-        {"nome" :"Prova 2", "data" : "2022-06-21"},
-        {"nome" :"Trabalho P1", "data" : "2022-06-27"},
-        {"nome" :"Recuperação", "data" : "2022-06-28"}
+        {"nome" :"Prova 1", "data" : "2022-10-19"},
+        {"nome" :"Prova 2", "data" : "2022-12-07"},
+        {"nome" :"Recuperação", "data" : "2022-12-13"}
     ],
     
-    "HTT":[
-        {"nome" :"Prova 1", "data" : "2022-04-28"},
-        {"nome" :"Debate", "data" : "2022-05-19"},                 
-        {"nome" :"Trabalho Final", "data" : "2022-06-02"},
-        {"nome" :"Recuperação", "data" : "2022-06-23"}
-    ],
-    
-    "Física 3":[
-        {"nome" :"Prova 1", "data" : "2022-04-15"},
-        {"nome" :"Prova 2", "data" : "2022-05-20"},
-        {"nome" :"Prova 3", "data" : "2022-06-24"},
-        {"nome" :"Lista 1", "data" : "2022-04-15"},
-        {"nome" :"Lista 2", "data" : "2022-04-15"},
-        {"nome" :"Lista 3", "data" : "2022-05-20"},
-        {"nome" :"Lista 4", "data" : "2022-05-20"},
-        {"nome" :"Lista 5", "data" : "2022-05-27"},
-        {"nome" :"Recuperação", "data" : "2022-07-01"}
+    "Fenômenos de Transporte 1":[
+        {"nome" :"Prova 1", "data" : "2022-09-09"},
+        {"nome" :"Prova 2", "data" : "2022-10-28"},
+        {"nome" :"Prova 3", "data" : "2022-12-02"},
+        {"nome" :"Recuperação", "data" : "2022-12-09"}
     ]    
 
 }
