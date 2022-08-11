@@ -94,7 +94,7 @@ class Provas(commands.Cog):
         hojeString = datetime.date.today().strftime('%d/%m/%y')
         diaDaSemana = hoje.weekday()
 
-        FIM = datetime.date(2022, 7, 6)
+        FIM = datetime.date(2022, 12, 21)
         diasParaFim = (FIM-hoje).days
 
         if diasParaFim == 0:
