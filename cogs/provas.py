@@ -419,7 +419,7 @@ class Provas(commands.Cog):
                             embedProvas.add_field(name=f'•**{prova["materia"]}**',
                                                     value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dias**', inline=False)
 
-                mensagemEmbed = await canalProvas.send(content='@everyone', embed=embedProvas)
+            mensagemEmbed = await canalProvas.send(content='@everyone', embed=embedProvas)
 
             await dbExecute(f'UPDATE {tableAvisos} SET id_mens = {mensagemEmbed.id} WHERE id_canal = {canalProvas.id}')
 
