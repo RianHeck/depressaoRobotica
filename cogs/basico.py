@@ -139,6 +139,11 @@ class Basico(commands.Cog):
         pingm = await ctx.channel.send('Ping?')
         await pingm.edit(content = 'Pong! Latência de {0} ms. Latência de API {1} ms'.format(str(pingm.created_at - ctx.message.created_at)[8:-3], round(self.bot.latency*1000)))
 
+    @commands.command(enabled = False)
+    async def salve(self, ctx):
+        can = self.bot.get_channel(1001279021117620417)
+        await can.send("salve")
+
 
     @commands.command()
     @adm()

@@ -94,12 +94,12 @@ class Provas(commands.Cog):
         hojeString = datetime.date.today().strftime('%d/%m/%y')
         diaDaSemana = hoje.weekday()
 
-        FIM = datetime.date(2022, 7, 6)
+        FIM = datetime.date(2022, 12, 21)
         diasParaFim = (FIM-hoje).days
 
         if diasParaFim == 0:
             embedProvas = discord.Embed(
-            title=f'**{self.diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)\nACABO RAPAZIADA, É ISSO. ATÉ AGOSTO!', color=0x336EFF)
+            title=f'**{self.diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)\nACABO RAPAZIADA, É ISSO. ATÉ 2023!', color=0x336EFF)
         else:
             embedProvas = discord.Embed(
             title=f'**{self.diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)\nFaltam {diasParaFim} dias para o fim do semestre.', color=0x336EFF)
@@ -120,15 +120,15 @@ class Provas(commands.Cog):
 
         provasParaPeriodo = sorted(provasParaPeriodo, key=lambda prova: prova['diasParaProva'])
 
-        
-        if provasParaPeriodo[0]['diasParaProva'] == 0:
-            embedProvas.set_image(url='https://i.imgur.com/kaAhqqC.gif')
-            embedProvas.color = 0xFF0000
-        elif provasParaPeriodo[0]['diasParaProva'] == 1:
-            embedProvas.set_image(url='https://i.imgur.com/AQhq1Mo.png')
-            embedProvas.color = 0xFFFF00
-        else:
-            embedProvas.set_image(url='https://i.imgur.com/zkGm9j2.jpg')
+        if len(provasParaPeriodo) != 0:        
+            if provasParaPeriodo[0]['diasParaProva'] == 0:
+                embedProvas.set_image(url='https://i.imgur.com/kaAhqqC.gif')
+                embedProvas.color = 0xFF0000
+            elif provasParaPeriodo[0]['diasParaProva'] == 1:
+                embedProvas.set_image(url='https://i.imgur.com/AQhq1Mo.png')
+                embedProvas.color = 0xFFFF00
+            else:
+                embedProvas.set_image(url='https://i.imgur.com/zkGm9j2.jpg')
 
         # aumentar tamanho horizontal
         # footer = "\u2800" * 100
@@ -150,20 +150,24 @@ class Provas(commands.Cog):
             if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
                     await ctx.message.delete()
 
-            for prova in provasParaPeriodo:
-                dataProva = prova['data']
-                dia = dataProva.strftime('%d/%m/%y')
-                diaDaSemana = self.diaSemana(dataProva.weekday())
-                # aqui (1)
-                if prova['diasParaProva'] == 0:
-                    embedProvas.add_field(name=f'•**{prova["materia"]}**',
-                                        value=f'__->**É HOJE FIOTE** **{prova["nome"].upper()}** DE **{prova["materia"].upper()}**, {diaDaSemana}, {dia}__', inline=False)
-                elif prova['diasParaProva'] == 1:
-                    embedProvas.add_field(name=f'•**{prova["materia"]}**',
-                                        value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dia**', inline=False)
-                else:
-                    embedProvas.add_field(name=f'•**{prova["materia"]}**',
-                                        value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dias**', inline=False)
+            if len(provasParaPeriodo) == 0:
+                embedProvas.add_field(name=f'•**Nada**',
+                                            value=f'Aparentemente não tem nada de provas ou trabalhos durante esse período de tempo.', inline=False)
+            else:
+                for prova in provasParaPeriodo:
+                    dataProva = prova['data']
+                    dia = dataProva.strftime('%d/%m/%y')
+                    diaDaSemana = self.diaSemana(dataProva.weekday())
+                    # aqui (1)
+                    if prova['diasParaProva'] == 0:
+                        embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                            value=f'__->**É HOJE FIOTE** **{prova["nome"].upper()}** DE **{prova["materia"].upper()}**, {diaDaSemana}, {dia}__', inline=False)
+                    elif prova['diasParaProva'] == 1:
+                        embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                            value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dia**', inline=False)
+                    else:
+                        embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                            value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dias**', inline=False)
 
 
             # mensagemJunto = await ctx.channel.send(f'{ctx.author.mention}')
@@ -397,19 +401,23 @@ class Provas(commands.Cog):
             async with canalProvas.typing():
                 embedProvas, provasParaPeriodo = await self.criaEmbedProvas(sem)
 
-                for prova in provasParaPeriodo:
-                    dataProva = prova['data']
-                    dia = dataProva.strftime('%d/%m/%y')
-                    diaDaSemana = self.diaSemana(dataProva.weekday())
-                    if prova['diasParaProva'] == 0:
-                        embedProvas.add_field(name=f'•**{prova["materia"]}**',
-                                                value=f'__->**É HOJE RAPAZIADA** **{prova["nome"].upper()}** DE **{prova["materia"].upper()}**, {diaDaSemana}, {dia}__', inline=False)
-                    elif prova['diasParaProva'] == 1:
-                        embedProvas.add_field(name=f'•**{prova["materia"]}**',
-                                                value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dia**', inline=False)
-                    else:
-                        embedProvas.add_field(name=f'•**{prova["materia"]}**',
-                                                value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dias**', inline=False)
+                if len(provasParaPeriodo) == 0:
+                        embedProvas.add_field(name=f'•**Nada**',
+                                                    value=f'Aparentemente não tem nada de provas ou trabalhos durante esse período de tempo.', inline=False)
+                else:
+                    for prova in provasParaPeriodo:
+                        dataProva = prova['data']
+                        dia = dataProva.strftime('%d/%m/%y')
+                        diaDaSemana = self.diaSemana(dataProva.weekday())
+                        if prova['diasParaProva'] == 0:
+                            embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                                    value=f'__->**É HOJE RAPAZIADA** **{prova["nome"].upper()}** DE **{prova["materia"].upper()}**, {diaDaSemana}, {dia}__', inline=False)
+                        elif prova['diasParaProva'] == 1:
+                            embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                                    value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dia**', inline=False)
+                        else:
+                            embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                                    value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dias**', inline=False)
 
             mensagemEmbed = await canalProvas.send(content='@everyone', embed=embedProvas)
 
@@ -462,19 +470,23 @@ class Provas(commands.Cog):
                 async with canalProvas.typing():
                     embedProvas, provasParaPeriodo = await self.criaEmbedProvas(sem)
 
-                    for prova in provasParaPeriodo:
-                        dataProva = prova['data']
-                        dia = dataProva.strftime('%d/%m/%y')
-                        diaDaSemana = self.diaSemana(dataProva.weekday())
-                        if prova['diasParaProva'] == 0:
-                            embedProvas.add_field(name=f'•**{prova["materia"]}**',
-                                                    value=f'__->**É HOJE RAPAZIADA** **{prova["nome"].upper()}** DE **{prova["materia"].upper()}**, {diaDaSemana}, {dia}__', inline=False)
-                        elif prova['diasParaProva'] == 1:
-                            embedProvas.add_field(name=f'•**{prova["materia"]}**',
-                                                    value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dia**', inline=False)
-                        else:
-                            embedProvas.add_field(name=f'•**{prova["materia"]}**',
-                                                    value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dias**', inline=False)
+                    if len(provasParaPeriodo) == 0:
+                        embedProvas.add_field(name=f'•**Nada**',
+                                                    value=f'Aparentemente não tem nada de provas ou trabalhos durante esse período de tempo.', inline=False)
+                    else:
+                        for prova in provasParaPeriodo:
+                            dataProva = prova['data']
+                            dia = dataProva.strftime('%d/%m/%y')
+                            diaDaSemana = self.diaSemana(dataProva.weekday())
+                            if prova['diasParaProva'] == 0:
+                                embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                                        value=f'__->**É HOJE RAPAZIADA** **{prova["nome"].upper()}** DE **{prova["materia"].upper()}**, {diaDaSemana}, {dia}__', inline=False)
+                            elif prova['diasParaProva'] == 1:
+                                embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                                        value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dia**', inline=False)
+                            else:
+                                embedProvas.add_field(name=f'•**{prova["materia"]}**',
+                                                        value=f'->**{prova["nome"]}** de **{prova["materia"]}**, {diaDaSemana}, {dia} em **{prova["diasParaProva"]} dias**', inline=False)
 
                 mensagemEmbed = await canalProvas.send(content='@everyone', embed=embedProvas)
 
