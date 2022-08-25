@@ -450,7 +450,7 @@ class Provas(commands.Cog):
             
             diferenca = datetime.datetime.combine(datetime.date.min, agora) - datetime.datetime.combine(datetime.date.min, tempo_setado)
             t1 = datetime.timedelta(minutes=1)
-            t2 = datetime.timedelta(seconds=0)
+            t2 = datetime.timedelta(microseconds=0)
 
             if(diferenca >= t2 and diferenca < t1):
                 if mensagem[1] != 0:
