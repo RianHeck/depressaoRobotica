@@ -93,14 +93,22 @@ class cassinoView(View):
         if self.totalCartasJogador > 21 and self.totalCartasBot > 21:
             self.embed.add_field(name='Ninguém ganhou!', value='\u200b', inline=False)
 
-        elif self.totalCartasBot > 21 or self.totalCartasBot < self.totalCartasJogador:
+        elif self.totalCartasBot > 21:
             self.pontosJogador += 1
             self.embed.add_field(name='Você ganhou!', value='\u200b', inline=False)
 
-        elif self.totalCartasJogador > 21 or self.totalCartasBot > self.totalCartasJogador:
+        elif self.totalCartasJogador > 21:
             self.pontosBot += 1
             self.embed.add_field(name='O bot ganhou!', value='\u200b', inline=False)
-            
+
+        elif self.totalCartasBot > self.totalCartasJogador:
+            self.pontosBot += 1
+            self.embed.add_field(name='O bot ganhou!', value='\u200b', inline=False)
+
+        elif self.totalCartasBot < self.totalCartasJogador:
+            self.pontosJogador += 1
+            self.embed.add_field(name='Você ganhou!', value='\u200b', inline=False)
+
         elif self.totalCartasBot == self.totalCartasJogador:
             self.pontosBot += 1
             self.pontosJogador += 1
