@@ -117,23 +117,35 @@ class cassinoView(View):
         self.rodada += 1
 
 
+    # async def jogadaBot(self):
+    #     await asyncio.sleep(1)
+    #     while(1):
+    #         if (21 - self.totalCartasBot) >= 13:
+    #             chance = 100
+    #         else:
+    #             chance = interp(21 - self.totalCartasBot, [0, 21], [0, 100])
+    #         numero = randint(0, 99)
+    #         if ((numero > chance) or (self.totalCartasBot > self.totalCartasJogador and self.totalCartasJogador < 21)) and not (self.totalCartasBot < self.totalCartasJogador) or (self.totalCartasJogador > 21):
+    #             break
+    #         self.ultimaCarta = randint(1, 13)
+    #         self.totalCartasBot += self.ultimaCarta
+    #         if self.totalCartasBot >= 21:
+    #             break
+    #         else:
+    #             await self.atualizaEmbed()
+    #             await asyncio.sleep(1)
+        
+    #     await self.finalizaRodada()
+    #     await asyncio.sleep(2)
+    #     await self.comeca()
+
     async def jogadaBot(self):
         await asyncio.sleep(1)
-        while(1):
-            if (21 - self.totalCartasBot) >= 13:
-                chance = 100
-            else:
-                chance = interp(21 - self.totalCartasBot, [0, 21], [0, 100])
-            numero = randint(0, 99)
-            if ((numero > chance) or (self.totalCartasBot > self.totalCartasJogador and self.totalCartasJogador < 21)) and not (self.totalCartasBot < self.totalCartasJogador) or (self.totalCartasJogador > 21):
-                break
+        while(self.totalCartasBot < 21 and self.totalCartasBot < self.totalCartasJogador and self.totalCartasJogador <= 21):
             self.ultimaCarta = randint(1, 13)
             self.totalCartasBot += self.ultimaCarta
-            if self.totalCartasBot >= 21:
-                break
-            else:
-                await self.atualizaEmbed()
-                await asyncio.sleep(1)
+            await self.atualizaEmbed()
+            await asyncio.sleep(1)
         
         await self.finalizaRodada()
         await asyncio.sleep(2)
