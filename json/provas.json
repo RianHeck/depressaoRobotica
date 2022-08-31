@@ -7,6 +7,20 @@
         {"nome" :"CCH", "data" : "2022-11-29"},
         {"nome" :"Recuperação", "data" : "2022-12-12"}
         ],
+    
+    "Cálculo 3":[
+        {"nome" :"Prova 1", "data" : "2022-08-30"},
+        {"nome" :"Prova 2", "data" : "2022-09-20"},
+        {"nome" :"Prova 3", "data" : "2022-10-24"},
+        {"nome" :"Prova 4", "data" : "2022-11-08"},
+        {"nome" :"Prova 5", "data" : "2022-12-06"},
+        {"nome" :"Recuperação", "data" : "2022-12-19"}
+        ],
+    
+    "POO":[
+        {"nome" :"Prova 1", "data" : "2022-09-30"},
+        {"nome" :"Prova 2", "data" : "2022-11-25"}
+        ],
 
     "Cálculo Numérico":[
         {"nome" :"Prova 1", "data" : "2022-09-28"},

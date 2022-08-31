@@ -89,24 +89,26 @@ class cassinoView(View):
         self.embed.add_field(name='**Fim da rodada**', value=f'**Rodada {self.rodada}**', inline=False)
         self.embed.add_field(name='Suas Cartas', value=f'`{self.totalCartasJogador}`')
         self.embed.add_field(name='Cartas do Bot', value=f'`{self.totalCartasBot}`')
+
         if self.totalCartasJogador > 21 and self.totalCartasBot > 21:
             self.embed.add_field(name='Ninguém ganhou!', value='\u200b', inline=False)
-        elif self.totalCartasJogador == 21 and self.totalCartasBot == 21:
-            self.pontosBot += 1
-            self.pontosJogador += 1
-            self.embed.add_field(name='Os dois ganharam!', value='\u200b', inline=False)
+
         elif self.totalCartasBot > 21:
             self.pontosJogador += 1
             self.embed.add_field(name='Você ganhou!', value='\u200b', inline=False)
+
         elif self.totalCartasJogador > 21:
             self.pontosBot += 1
             self.embed.add_field(name='O bot ganhou!', value='\u200b', inline=False)
+
         elif self.totalCartasBot > self.totalCartasJogador:
             self.pontosBot += 1
             self.embed.add_field(name='O bot ganhou!', value='\u200b', inline=False)
+
         elif self.totalCartasBot < self.totalCartasJogador:
             self.pontosJogador += 1
             self.embed.add_field(name='Você ganhou!', value='\u200b', inline=False)
+
         elif self.totalCartasBot == self.totalCartasJogador:
             self.pontosBot += 1
             self.pontosJogador += 1
@@ -117,23 +119,35 @@ class cassinoView(View):
         self.rodada += 1
 
 
+    # async def jogadaBot(self):
+    #     await asyncio.sleep(1)
+    #     while(1):
+    #         if (21 - self.totalCartasBot) >= 13:
+    #             chance = 100
+    #         else:
+    #             chance = interp(21 - self.totalCartasBot, [0, 21], [0, 100])
+    #         numero = randint(0, 99)
+    #         if ((numero > chance) or (self.totalCartasBot > self.totalCartasJogador and self.totalCartasJogador < 21)) and not (self.totalCartasBot < self.totalCartasJogador) or (self.totalCartasJogador > 21):
+    #             break
+    #         self.ultimaCarta = randint(1, 13)
+    #         self.totalCartasBot += self.ultimaCarta
+    #         if self.totalCartasBot >= 21:
+    #             break
+    #         else:
+    #             await self.atualizaEmbed()
+    #             await asyncio.sleep(1)
+        
+    #     await self.finalizaRodada()
+    #     await asyncio.sleep(2)
+    #     await self.comeca()
+
     async def jogadaBot(self):
         await asyncio.sleep(1)
-        while(1):
-            if (21 - self.totalCartasBot) >= 13:
-                chance = 100
-            else:
-                chance = interp(21 - self.totalCartasBot, [0, 21], [0, 100])
-            numero = randint(0, 99)
-            if ((numero > chance) or (self.totalCartasBot > self.totalCartasJogador and self.totalCartasJogador < 21)) and not (self.totalCartasBot < self.totalCartasJogador) or (self.totalCartasJogador > 21):
-                break
+        while(self.totalCartasBot < 21 and self.totalCartasBot < self.totalCartasJogador and self.totalCartasJogador <= 21):
             self.ultimaCarta = randint(1, 13)
             self.totalCartasBot += self.ultimaCarta
-            if self.totalCartasBot >= 21:
-                break
-            else:
-                await self.atualizaEmbed()
-                await asyncio.sleep(1)
+            await self.atualizaEmbed()
+            await asyncio.sleep(1)
         
         await self.finalizaRodada()
         await asyncio.sleep(2)
