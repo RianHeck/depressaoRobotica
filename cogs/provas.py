@@ -97,9 +97,15 @@ class Provas(commands.Cog):
         FIM = datetime.date(2022, 12, 21)
         diasParaFim = (FIM-hoje).days
 
+        RICARDO = datetime.date(2022, 11, 22)
+        diasParaRicardo = (RICARDO-hoje).days
+
         if diasParaFim == 0:
             embedProvas = discord.Embed(
             title=f'**{self.diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)\nACABO RAPAZIADA, É ISSO. ATÉ 2023!', color=0x336EFF)
+        elif diasParaRicardo == 0:
+            embedProvas = discord.Embed(
+            title=f'**{self.diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)\nFaltam {diasParaFim} dias para o fim do semestre.\nFeliz 0x23 Prof.!', color=0x336EFF)
         else:
             embedProvas = discord.Embed(
             title=f'**{self.diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)\nFaltam {diasParaFim} dias para o fim do semestre.', color=0x336EFF)
