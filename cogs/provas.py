@@ -88,7 +88,7 @@ class Provas(commands.Cog):
         # with open('provasTeste.json', encoding='utf-8') as prov:
             # provas = json.load(prov)
         
-        provas = await load_json(arquivoProvas)
+        provas = load_json(arquivoProvas)
 
         hoje = datetime.date.today()
         hojeString = datetime.date.today().strftime('%d/%m/%y')
