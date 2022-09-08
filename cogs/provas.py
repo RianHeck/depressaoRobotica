@@ -110,6 +110,9 @@ class Provas(commands.Cog):
             embedProvas = discord.Embed(
             title=f'**{self.diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {sem} semana(s)\nFaltam {diasParaFim} dias para o fim do semestre.', color=0x336EFF)
 
+        if hoje.day == 21 and hoje.month == 9:
+            embedProvas.set_footer(text='https://youtu.be/Gs069dndIYk')
+
         provasParaPeriodo = []
         for materia in provas:
             for provaIndividual in provas[materia]:
