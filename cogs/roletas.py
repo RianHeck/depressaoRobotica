@@ -41,6 +41,22 @@ class Roletas(commands.Cog):
                 if not voice.is_connected():
                     break
 
+    @commands.command()
+    async def escolhejogo(self, ctx):
+        n = random.randint(1, 6)
+        if n == 1:
+            await ctx.reply("Minecraft!")
+        elif n == 2:
+            await ctx.reply("Valorant!")
+        elif n == 3:
+            await ctx.reply("Civilization!")
+        elif n == 4:
+            await ctx.reply("GTA V!")
+        elif n == 5:
+            await ctx.reply("LOL!")
+        elif n == 6:
+            await ctx.reply("CSGO!")
+
     @commands.command(brief='roleta russa 1-6')
     async def roleta(self, ctx, *, balas='1'):
         
