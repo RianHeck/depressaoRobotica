@@ -5,7 +5,6 @@ from utils.checks import *
 from utils.db import *
 import sys
 
-
 sys.path.append("..")
 
 class Basico(commands.Cog):
@@ -153,5 +152,5 @@ class Basico(commands.Cog):
             canal = self.bot.get_channel(int(958058492550316113))
             await canal.purge(bulk=False)
 
-def setup(bot):
-    bot.add_cog(Basico(bot))
+async def setup(bot):
+    await bot.add_cog(Basico(bot))

@@ -23,7 +23,7 @@ class Sessao():
         await self.view.comeca()
 
 class cassinoView(View):
-    def __init__(self, *items: discord.ui.Item, timeout: discord.Optional[float] = 180, sessao : Sessao):
+    def __init__(self, *items: discord.ui.Item, timeout: float = 180, sessao : Sessao):
         super().__init__(*items, timeout=timeout)
         self.sessao = sessao
         self.embedMensagem = 0
@@ -191,5 +191,5 @@ class Cassino(commands.Cog):
         await sessao.comeca()
 
 
-def setup(bot):
-    bot.add_cog(Cassino(bot))
+async def setup(bot):
+    await bot.add_cog(Cassino(bot))

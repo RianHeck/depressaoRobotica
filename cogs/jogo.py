@@ -203,7 +203,7 @@ class Sessao:
 
 
 class jogoView(View):
-    def __init__(self, *items: discord.ui.Item, timeout: discord.Optional[float] = 180, sessao : Sessao):
+    def __init__(self, *items: discord.ui.Item, timeout: float = 180, sessao : Sessao):
         super().__init__(*items, timeout=timeout)
         self.ultimaMens = None
         self.sessao = sessao
@@ -661,5 +661,5 @@ class Jogo(commands.Cog):
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
-def setup(bot):
-    bot.add_cog(Jogo(bot))
+async def setup(bot):
+    await bot.add_cog(Jogo(bot))
