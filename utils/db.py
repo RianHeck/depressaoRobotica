@@ -34,7 +34,7 @@ async def dbReturn(query):
     db.close()
     return val
 
-async  def dbReturnDict(query):
+async def dbReturnDict(query):
     db = sqlite3.connect(dbName)
     db.row_factory = sqlite3.Row
     cursor = db.cursor()

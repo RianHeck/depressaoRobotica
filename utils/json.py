@@ -1,13 +1,6 @@
 import json
-import os
 
-async def create_jsonDir():
-        current_directory = os.getcwd()
-        final_directory = os.path.join(current_directory, r'json')
-        if not os.path.exists(final_directory):
-            os.makedirs(final_directory)
-
-async def load_json(filename):
+def load_json(filename):
     """Carrega um json
 
     Args:
@@ -17,7 +10,6 @@ async def load_json(filename):
         [list]: O conteúdo do arquivo, retorna uma lista vazia se o arquivo não existe
     """
     try:
-        # await create_jsonDir()
         with open(filename, encoding='utf-8') as inF:
             arquivo = json.load(inF)
             return arquivo
@@ -27,7 +19,7 @@ async def load_json(filename):
         open(filename, 'w', encoding='utf-8')
         return []
         
-async def write_json(filename, content):
+def write_json(filename, content):
     """Escreve em um json
 
     Args:
@@ -37,13 +29,13 @@ async def write_json(filename, content):
     Returns:
         [None]: Nada
     """
-    novo = await load_json(filename)
+    novo = load_json(filename)
     novo.append(content)
     with open(filename, 'w', encoding='utf-8') as outF:
         json.dump(novo, outF, ensure_ascii=True, indent=4)
 
 
-async def delete_item(filename, content):
+async def delete_item(filename, contentToDelete):
     """Deleta um elemento de um json
 
     Args:
@@ -53,9 +45,9 @@ async def delete_item(filename, content):
     Returns:
         [None|-1]: Nada normalmente, -1 se o conteúdo não estiver no arquivo
     """
-    content = await load_json(filename)
-    if content in content:
-        content.remove(content)
+    content = load_json(filename)
+    if contentToDelete in content:
+        content.remove(contentToDelete)
     else:
         return -1
     with open(filename, 'w', encoding='utf-8') as outF:
