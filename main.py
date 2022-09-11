@@ -1,9 +1,13 @@
+import asyncio
 import sys
 import os
 from discord.ext import commands
 import json
 import discord
 from dotenv import load_dotenv
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 if os.path.dirname(sys.argv[0]) != '':
     os.chdir(os.path.dirname(sys.argv[0]))
@@ -14,6 +18,9 @@ if len(sys.argv) != 1:
         # imprime duas vezes????
         print('--------MODO DE DEBUG--------')
         TOKEN = os.getenv('DEBUGTOKEN')
+    else:
+        print('opcao invalida')
+        sys.exit(1)
 else:
     TOKEN = os.getenv('TOKEN')
 
@@ -44,19 +51,25 @@ if prefix == '':
 
 intents = discord.Intents.all()
 intents.members = True
-bot = commands.Bot(command_prefix=prefix,intents=intents)
+bot = commands.Bot(command_prefix=prefix,intents=intents, help_command=None)
 bot.owner_id = OWNER_ID
 
 @bot.event
 async def on_ready():
-        print(f'Conectado como {bot.user}')
-        await bot.change_presence(activity=discord.Game(f'"{prefix}comandos" para ajuda'))
+       print(f'Conectado como {bot.user}')
+       await bot.change_presence(activity=discord.Game(f'"{prefix}comandos" para ajuda'))
 
-        print(f'Bot foi iniciado, com {len(bot.users)} usuários, em {len(bot.guilds)} servers.')
+       print(f'Bot foi iniciado, com {len(bot.users)} usuários, em {len(bot.guilds)} servers.')
 
-for filename in os.listdir('./cogs'):
-    if filename.endswith('.py') and filename != '__init__.py':
-        bot.load_extension(f'cogs.{filename[:-3]}')
-        print(f'Carregado cogs.{filename[:-3]}')
+async def load_extensions():
+	for filename in os.listdir('./cogs'):
+    		if filename.endswith('.py') and filename != '__init__.py':
+       			await bot.load_extension(f'cogs.{filename[:-3]}')
+        		print(f'Carregado cogs.{filename[:-3]}')
 
-bot.run(TOKEN)
+async def main():
+	await load_extensions()
+	await bot.start(TOKEN)
+
+if __name__ == '__main__':
+    asyncio.run(main())

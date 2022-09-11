@@ -1,4 +1,3 @@
-from multiprocessing.connection import Listener
 from discord.ext import commands
 import random
 import discord
@@ -199,5 +198,5 @@ class Roletas(commands.Cog):
         
         await self.deleta_mensagem(ctx)
 
-def setup(bot):
-    bot.add_cog(Roletas(bot))
+async def setup(bot):
+    await bot.add_cog(Roletas(bot))
