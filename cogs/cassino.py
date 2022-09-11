@@ -30,11 +30,27 @@ class cassinoView(View):
         self.pontosJogador = 0
         self.pontosBot = 0
         self.rodada = 1
+        self.cartasPegas = [0] * 14
         self.embed = discord.Embed(title='Blackjack', description='Chegue o mais próximo de 21!')
 
+    def resetarDeque(self):
+        for i in range(1, 14):
+            self.cartasPegas[i] = 0
+
+    async def pegaCarta(self):
+        if self.cartasPegas.count(4) == 13:
+            await self.sessao.canal.send("Acabaram as cartas. Como isso aconteceu?")
+            return 
+        carta = randint(1, 13)
+        while(self.cartasPegas[carta] == 4):
+            carta = randint(1, 13)
+        self.cartasPegas[carta] += 1
+        return carta
+    
     async def comeca(self):
         self.totalCartasJogador = 0
         self.totalCartasBot = 0
+        self.resetarDeque()
         self.ultimaCarta = 0
         self.vezDoJogador = True
         await self.embedComeco()
@@ -116,6 +132,7 @@ class cassinoView(View):
 
 
         await self.embedMensagem.edit(embed=self.embed, view=self)
+        self.resetarDeque()
         self.rodada += 1
 
 
@@ -144,7 +161,7 @@ class cassinoView(View):
     async def jogadaBot(self):
         await asyncio.sleep(1)
         while(self.totalCartasBot < 21 and self.totalCartasBot < self.totalCartasJogador and self.totalCartasJogador <= 21):
-            self.ultimaCarta = randint(1, 13)
+            self.ultimaCarta = await self.pegaCarta()
             self.totalCartasBot += self.ultimaCarta
             await self.atualizaEmbed()
             await asyncio.sleep(1)
@@ -160,12 +177,12 @@ class cassinoView(View):
             await interaction.delete_original_message(delay=2)
             return
         await interaction.response.defer()
-        self.ultimaCarta = randint(1, 13)
+        self.ultimaCarta = await self.pegaCarta()
         self.totalCartasJogador += self.ultimaCarta
         await self.atualizaEmbed()
-        if self.totalCartasJogador >= 21:
-            self.vezDoJogador = False
-            await self.jogadaBot()
+        # if self.totalCartasJogador >= 21:
+        #     self.vezDoJogador = False
+        #     await self.jogadaBot()
 
     @discord.ui.button(label="Parar de Pedir", custom_id="parar_de_pedir", style=discord.ButtonStyle.secondary)
     async def parar_callback(self, button, interaction):
