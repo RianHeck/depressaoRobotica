@@ -203,7 +203,7 @@ class Sessao:
 
 
 class jogoView(View):
-    def __init__(self, *items: discord.ui.Item, timeout: discord.Optional[float] = 180, sessao : Sessao):
+    def __init__(self, *items: discord.ui.Item, timeout: float = 180, sessao : Sessao):
         super().__init__(*items, timeout=timeout)
         self.ultimaMens = None
         self.sessao = sessao
@@ -256,13 +256,13 @@ class jogoView(View):
         self.sessao.mapas[self.sessao.lugar_atual].clear_fields()
 
     @discord.ui.button(emoji="🛑", custom_id="parar")
-    async def button1_callback(self, button, interaction):
+    async def button1_callback(self, interaction, button):
         await interaction.response.defer()
         await self.sessao.canal.send('Parando jogo.', delete_after=5)
         await self.sessao.parar()
     
     @discord.ui.button(emoji="⬆️", custom_id="cima")
-    async def button2_callback(self, button, interaction):
+    async def button2_callback(self, interaction, button):
         await interaction.response.defer()
         self.sessao.insistencia = 0
         if self.sessao.lugar_atual == 'patio':
@@ -272,7 +272,7 @@ class jogoView(View):
         await self.atualiza_botoes(interaction)
 
     @discord.ui.button(emoji="🖐️", custom_id="pegar")
-    async def button3_callback(self, button, interaction):
+    async def button3_callback(self, interaction, button):
         await interaction.response.defer()
         if self.sessao.lugar_atual == 'patio':
             if 'glock' in self.sessao.items:
@@ -334,7 +334,7 @@ class jogoView(View):
         await self.atualiza_botoes(interaction)
 
     @discord.ui.button(emoji="⬅️", row=2, custom_id="esquerda")
-    async def button6_callback(self, button, interaction):
+    async def button6_callback(self, interaction, button):
         await interaction.response.defer()
         self.sessao.insistencia = 0
         if self.sessao.lugar_atual == 'patio':
@@ -345,7 +345,7 @@ class jogoView(View):
         await self.atualiza_botoes(interaction)
 
     @discord.ui.button(emoji="⬇️", row=2, custom_id="baixo")
-    async def button7_callback(self, button, interaction):
+    async def button7_callback(self, interaction, button):
         await interaction.response.defer()
         self.sessao.insistencia = 0
         if self.sessao.lugar_atual == 'patio':
@@ -367,7 +367,7 @@ class jogoView(View):
         await self.atualiza_botoes(interaction)
     
     @discord.ui.button(emoji="➡️", row=2, custom_id="direita")
-    async def button8_callback(self, button, interaction):
+    async def button8_callback(self, interaction, button):
         await interaction.response.defer()
         self.sessao.insistencia = 0
         if self.sessao.lugar_atual == 'patio':
@@ -661,5 +661,5 @@ class Jogo(commands.Cog):
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
-def setup(bot):
-    bot.add_cog(Jogo(bot))
+async def setup(bot):
+    await bot.add_cog(Jogo(bot))
