@@ -1,0 +1,18 @@
+{
+    
+    "espada":
+    {
+        "nome" : "Espada Lendária",
+        "dmg" : 10,
+        "defa" : 0
+    },
+    
+    "escudo":{
+        "nome" : "Escudo de Luz",
+        "dmg" : 0,
+        "defa" : 15
+    }
+
+
+
+}
