@@ -448,6 +448,9 @@ class Provas(commands.Cog):
 
     @tasks.loop(minutes=1) # verifica a cada 1 minuto
     async def aviso_provas(self):
+        # verificar se o provas.json existe.
+        # se não, pedir para criar e não permitir task ou comando manual (fazer por checks)
+
         mensagens = await returnTable(tableAvisos)
         for mensagem in mensagens:
             canalProvas = self.bot.get_channel(mensagem[0])
