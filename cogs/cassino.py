@@ -57,10 +57,15 @@ class cassinoView(View):
         res = await self.wait()
         if res:
             await self.encerra()
+        
         # self.embedMensagem = await self.sessao.canal.send(embed=self.embed, view=self)
         # if self.embedMensagem == 0:
         #     self.embedMensagem = await self.sessao.canal.send(embed=self.embed, view=self)
         # await self.atualizaEmbed()
+
+    # async def on_timeout(self) -> None:
+    #     await self.encerra()
+    #     return await super().on_timeout()
 
     async def encerra(self):
         self.clear_items()
@@ -171,7 +176,7 @@ class cassinoView(View):
         await self.comeca()
 
     @discord.ui.button(label='Pedir Carta', custom_id="pedir_carta", style=discord.ButtonStyle.primary)
-    async def pedir_callback(self, interaction : discord.Interaction, button):
+    async def pedir_callback(self, interaction, button):
         if not self.vezDoJogador:
             await interaction.response.send_message('Vez do Bot, espera', ephemeral=True)
             # await interaction.delete_original_message(delay=2)
@@ -188,7 +193,7 @@ class cassinoView(View):
     async def parar_callback(self, interaction, button):
         if not self.vezDoJogador:
             await interaction.response.send_message('Vez do Bot, espera', ephemeral=True)
-            await interaction.delete_original_message(delay=2)
+            # await interaction.delete_original_message(delay=2)
             return
         await interaction.response.defer()
         self.vezDoJogador = False
