@@ -45,8 +45,6 @@ class cassinoView(View):
         while(self.cartasPegas[carta] == 4):
             carta = randint(1, 13)
         self.cartasPegas[carta] += 1
-        if(carta > 10):
-            carta = 10
         return carta
     
     async def comeca(self):
@@ -164,7 +162,10 @@ class cassinoView(View):
         await asyncio.sleep(1)
         while(self.totalCartasBot < 21 and self.totalCartasBot < self.totalCartasJogador and self.totalCartasJogador <= 21):
             self.ultimaCarta = await self.pegaCarta()
-            self.totalCartasBot += self.ultimaCarta
+            if(self.ultimaCarta < 10):
+                self.totalCartasBot += self.ultimaCarta
+            else:
+                self.totalCartasBot += 10
             await self.atualizaEmbed()
             await asyncio.sleep(1)
         
