@@ -186,7 +186,10 @@ class cassinoView(View):
             return
         await interaction.response.defer()
         self.ultimaCarta = await self.pegaCarta()
-        self.totalCartasJogador += self.ultimaCarta
+        if(self.ultimaCarta < 10):
+            self.totalCartasJogador += self.ultimaCarta
+        else:
+            self.totalCartasJogador += 10
         await self.atualizaEmbed()
         if self.totalCartasJogador >= 21:
             self.vezDoJogador = False
