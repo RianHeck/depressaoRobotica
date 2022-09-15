@@ -45,6 +45,8 @@ class cassinoView(View):
         while(self.cartasPegas[carta] == 4):
             carta = randint(1, 13)
         self.cartasPegas[carta] += 1
+        if(carta > 10):
+            carta = 10
         return carta
     
     async def comeca(self):
