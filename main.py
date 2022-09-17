@@ -30,7 +30,7 @@ avisosAutomaticos = True # para debug, primariamente
 
 intents = discord.Intents.all()
 intents.members = True
-bot = commands.Bot(command_prefix=prefix,intents=intents, help_command=None)
+bot = commands.Bot(command_prefix=prefix,intents=intents)
 bot.owner_id = OWNER_ID
 
 def initialSetup():
