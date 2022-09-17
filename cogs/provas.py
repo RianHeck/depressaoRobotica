@@ -507,5 +507,5 @@ class Provas(commands.Cog):
                 await dbExecute(f'UPDATE {tableAvisos} SET id_mens = {mensagemEmbed.id} WHERE id_canal = {canalProvas.id}')
 
 
-async def setup(bot):
-    await bot.add_cog(Provas(bot))
+def setup(bot):
+    bot.add_cog(Provas(bot))

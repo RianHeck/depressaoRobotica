@@ -56,10 +56,10 @@ def initialSetup():
         raise RuntimeError('Sem token do Bot')
 
 
-async def load_extensions():
+def load_extensions():
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py') and filename != '__init__.py':
-            await bot.load_extension(f'cogs.{filename[:-3]}')
+            bot.load_extension(f'cogs.{filename[:-3]}')
             print(f'Carregado cogs.{filename[:-3]}')
 
 @bot.event
@@ -69,10 +69,15 @@ async def on_ready():
 
     print(f'Bot foi iniciado, com {len(bot.users)} usuários, em {len(bot.guilds)} servers.')
 
-async def main():
+@bot.slash_command()
+async def teste(ctx):
+    await ctx.respond("Testado")
+
+def main():
     initialSetup()
-    await load_extensions()
-    await bot.start(TOKEN)
+    load_extensions()
+    bot.run(TOKEN)
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    # asyncio.run(main())
+    main()

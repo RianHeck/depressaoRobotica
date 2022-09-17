@@ -152,5 +152,5 @@ class Basico(commands.Cog):
             canal = self.bot.get_channel(int(958058492550316113))
             await canal.purge(bulk=False)
 
-async def setup(bot):
-    await bot.add_cog(Basico(bot))
+def setup(bot):
+    bot.add_cog(Basico(bot))

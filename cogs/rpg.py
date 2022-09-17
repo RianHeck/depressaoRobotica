@@ -275,5 +275,5 @@ class Rpg(commands.Cog):
 
 
 
-async def setup(bot):
-    await bot.add_cog(Rpg(bot))
+def setup(bot):
+    bot.add_cog(Rpg(bot))

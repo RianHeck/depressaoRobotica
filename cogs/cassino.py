@@ -179,10 +179,9 @@ class cassinoView(View):
         await self.comeca()
 
     @discord.ui.button(label='Pedir Carta', custom_id="pedir_carta", style=discord.ButtonStyle.primary)
-    async def pedir_callback(self, interaction, button):
+    async def pedir_callback(self, button, interaction : discord.Interaction):
         if not self.vezDoJogador:
-            await interaction.response.send_message('Vez do Bot, espera', ephemeral=True)
-            # await interaction.delete_original_message(delay=2)
+            await interaction.response.send_message('Vez do Bot, espera', ephemeral=True, delete_after=2)
             return
         await interaction.response.defer()
         self.ultimaCarta = await self.pegaCarta()
@@ -196,17 +195,16 @@ class cassinoView(View):
             await self.jogadaBot()
 
     @discord.ui.button(label="Parar de Pedir", custom_id="parar_de_pedir", style=discord.ButtonStyle.secondary)
-    async def parar_callback(self, interaction, button):
+    async def parar_callback(self, button, interaction):
         if not self.vezDoJogador:
-            await interaction.response.send_message('Vez do Bot, espera', ephemeral=True)
-            # await interaction.delete_original_message(delay=2)
+            await interaction.response.send_message('Vez do Bot, espera', ephemeral=False, delete_after=2)
             return
         await interaction.response.defer()
         self.vezDoJogador = False
         await self.jogadaBot()
 
     @discord.ui.button(label="Encerrar Jogo", custom_id="encerrar", style=discord.ButtonStyle.danger)
-    async def encerrar_callback(self, interaction, button):
+    async def encerrar_callback(self, button, interaction):
         await self.encerra()
 
 class Cassino(commands.Cog):
@@ -219,5 +217,5 @@ class Cassino(commands.Cog):
         await sessao.comeca()
 
 
-async def setup(bot):
-    await bot.add_cog(Cassino(bot))
+def setup(bot):
+    bot.add_cog(Cassino(bot))
