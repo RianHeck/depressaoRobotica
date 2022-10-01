@@ -56,6 +56,14 @@ class Roletas(commands.Cog):
         elif n == 6:
             await ctx.reply("CSGO!")
 
+    @commands.command()
+    async def moeda(self, ctx):
+        n = random.randint(1, 2)
+        if n == 1:
+            await ctx.reply('Cara!')
+        else:
+            await ctx.reply('Coroa!')
+
     @commands.command(brief='roleta russa 1-6')
     async def roleta(self, ctx, *, balas='1'):
         
