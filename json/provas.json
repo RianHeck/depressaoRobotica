@@ -52,13 +52,14 @@
     
     "Mecânica Geral":[
         {"nome" :"Prova 1", "data" : "2022-10-19"},
+        {"nome" :"Recuperação 1", "data" : "2022-11-09"},
         {"nome" :"Prova 2", "data" : "2022-12-07"},
-        {"nome" :"Recuperação", "data" : "2022-12-13"}
+        {"nome" :"Recuperação 2", "data" : "2022-12-13"}
     ],
     
     "Fenômenos de Transporte 1":[
         {"nome" :"Prova 1", "data" : "2022-09-09"},
-        {"nome" :"Prova 2", "data" : "2022-10-28"},
+        {"nome" :"Prova 2", "data" : "2022-11-04"},
         {"nome" :"Prova 3", "data" : "2022-12-02"},
         {"nome" :"Recuperação", "data" : "2022-12-09"}
     ]    
