@@ -5,7 +5,6 @@ from utils.checks import *
 from utils.db import *
 import sys
 
-sys.path.append("..")
 
 class Basico(commands.Cog):
     def __init__(self, bot):
@@ -96,7 +95,7 @@ class Basico(commands.Cog):
 
         message = await ctx.send(embed = page1)
         # sim eu to dependendo do meu código da outra cog, me deixa ser feliz
-        await dbExecute(f'INSERT INTO {tableMensagens}(id_canal, id_mens) VALUES({ctx.channel.id},{message.id})')
+        dbExecute(f'INSERT INTO {tableMensagens}(id_canal, id_mens) VALUES({ctx.channel.id},{message.id})')
         await message.add_reaction('⏮')
         await message.add_reaction('◀')
         await message.add_reaction('▶')

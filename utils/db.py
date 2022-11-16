@@ -8,7 +8,7 @@ tableScoreboard = 'scoreboard'
 tableWR = 'wr'
 tableRPG = 'rpg'
 
-async def returnTable(tableUsada):
+def returnTable(tableUsada):
     db = sqlite3.connect(dbName)
     cursor = db.cursor()
     cursor.execute(f'SELECT * FROM {tableUsada}')
@@ -17,7 +17,7 @@ async def returnTable(tableUsada):
     db.close()
     return mensagens
 
-async def dbExecute(query):
+def dbExecute(query):
     db = sqlite3.connect(dbName)
     cursor = db.cursor()
     cursor.execute(query)
@@ -25,7 +25,7 @@ async def dbExecute(query):
     cursor.close()
     db.close()
 
-async def dbReturn(query):
+def dbReturn(query):
     db = sqlite3.connect(dbName)
     cursor = db.cursor()
     cursor.execute(query)
@@ -34,7 +34,7 @@ async def dbReturn(query):
     db.close()
     return val
 
-async def dbReturnDict(query):
+def dbReturnDict(query):
     db = sqlite3.connect(dbName)
     db.row_factory = sqlite3.Row
     cursor = db.cursor()

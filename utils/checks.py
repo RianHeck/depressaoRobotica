@@ -1,17 +1,14 @@
 from discord.ext import commands
 import discord
 from main import OWNER_ID
-from utils.db import *
-import sys
-
-sys.path.append("..")
+from utils import db
 
 def permissao():
     async def predicate(ctx):
         if ctx.author.id == OWNER_ID:
             return True
         has_role = False
-        roles = await dbReturn(f'SELECT * FROM {tablePermissoes} WHERE id_guilda = {ctx.channel.id}')
+        roles = db.dbReturn(f'SELECT * FROM {db.tablePermissoes} WHERE id_guilda = {ctx.channel.id}')
         if roles is not None:
             for role in roles:
                 role = ctx.guild.get_role(role)
