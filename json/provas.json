@@ -45,8 +45,7 @@
     
     "Economia":[
         {"nome" :"Prova 1 (Nova Data)", "data" : "2022-10-05"},
-        {"nome" :"Prova 2 Entrega", "data" : "2022-11-23"},
-        {"nome" :"Prova 2 Seminário", "data" : "2022-11-30"},
+        {"nome" :"Prova 2 (Nova Data)", "data" : "2022-11-30"},
         {"nome" :"Recuperação", "data" : "2022-12-07"}
     ],
     
