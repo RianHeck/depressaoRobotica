@@ -89,7 +89,7 @@ class Provas(commands.Cog):
         provas = load_json(arquivoProvas)
 
         hoje = datetime.date.today()
-        hojeString = datetime.date.today().strftime('%d/%m/%y')
+        hojeString = hoje.strftime('%d/%m/%y')
         diaDaSemana = hoje.weekday()
 
         FIM = datetime.date(2022, 12, 21)
@@ -456,6 +456,10 @@ class Provas(commands.Cog):
     async def aviso_provas(self):
         # verificar se o provas.json existe.
         # se não, pedir para criar e não permitir task ou comando manual (fazer por checks)
+        FIM = datetime.date(2022, 12, 21)
+        hoje = datetime.date.today()
+        if FIM < hoje:
+            return
 
         mensagens = returnTable(tableAvisos)
         for mensagem in mensagens:
