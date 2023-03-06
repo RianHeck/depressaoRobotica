@@ -61,6 +61,40 @@
         {"nome" :"Prova 2", "data" : "2022-11-04"},
         {"nome" :"Prova 3", "data" : "2022-12-09"},
         {"nome" :"Recuperação", "data" : "2022-12-09"}
-    ]    
+    ],
+
+    "Sinais E Sistema":[
+        {"nome" :"Prova 1", "data" : "2023-05-15"},
+        {"nome" :"Prova 2", "data" : "2023-06-26"},
+        {"nome" :"Recuperação", "data" : "2023-06-29"}
+    ],
+
+    "Eletrônica Analógica A":[
+        {"nome" :"Prova 1", "data" : "2023-04-04"},
+        {"nome" :"Prova 2", "data" : "2023-05-26"},
+        {"nome" :"Prova 3", "data" : "2023-06-26"},
+        {"nome" :"Recuperação", "data" : "2023-07-03"}
+    ],
+
+    "Circuitos Digitais Para A Computação":[
+        {"nome" :"Prova 1", "data" : "2023-04-19"},
+        {"nome" :"Prova 2", "data" : "2023-05-18"},
+        {"nome" :"Prova 3", "data" : "2023-06-21"},
+        {"nome" :"Recuperação", "data" : "2023-06-28"}
+    ],
+
+    "Engenharia De Software":[
+        {"nome" :"Seminário", "data" : "2023-05-08"},
+        {"nome" :"Projeto", "data" : "2023-06-26"},
+        {"nome" :"Recuperação", "data" : "2023-07-03"}
+    ],
+
+     "Economia Política":[
+        {"nome" :"Prova 1", "data" : "2023-03-30"},
+        {"nome" :"Prova 2", "data" : "2023-05-11"},
+        {"nome" :"Prova 3", "data" : "2023-06-15"},
+        {"nome" :"Seminário", "data" : "2023-06-29"},
+        {"nome" :"Recuperação", "data" : "2023-07-06"}
+    ]
 
 }
