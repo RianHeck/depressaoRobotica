@@ -92,7 +92,7 @@ class Provas(commands.Cog):
         hojeString = hoje.strftime('%d/%m/%y')
         diaDaSemana = hoje.weekday()
 
-        FIM = datetime.date(2022, 12, 21)
+        FIM = datetime.date(2023, 7, 4)
         diasParaFim = (FIM-hoje).days
         FIMDiaSemana = FIM.weekday()
 
@@ -456,7 +456,7 @@ class Provas(commands.Cog):
     async def aviso_provas(self):
         # verificar se o provas.json existe.
         # se não, pedir para criar e não permitir task ou comando manual (fazer por checks)
-        FIM = datetime.date(2022, 12, 21)
+        FIM = datetime.date(2023, 7, 4)
         hoje = datetime.date.today()
         if FIM < hoje:
             return
