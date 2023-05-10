@@ -192,7 +192,7 @@ class Provas(commands.Cog):
             #await write_json(arquivoEmbeds, (mensagemEmbed.id, ctx.channel.id))
             await dbExecute(f'INSERT INTO {tableMensagens}(id_canal, id_mens) VALUES({ctx.channel.id},{mensagemEmbed.id})')
 
-            await mensagemEmbed.delete(delay=60)
+            await mensagemEmbed.delete(delay=120)
             # delete_item(arquivoEmbeds, (mensagemEmbed.id, ctx.channel.id))
 
     @commands.command(name='adiciona')
