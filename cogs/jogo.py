@@ -7,7 +7,6 @@ import time
 from utils.db import *
 from main import prefix
 
-sys.path.append("..")
 
 # COMANDO PARA VERIFICAR SE A PESSOA CERTA ESTA COM
 # OS CARGOS PACIFISTA E GENOCIDA
@@ -60,7 +59,7 @@ def nao_jogando():
 def tem_roleG():
     async def predicate(ctx):
         guilda = ctx.guild
-        roleG_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "genocide")')
+        roleG_id = dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "genocide")')
         if len(roleG_id) != 0:
             roleG = guilda.get_role(roleG_id[0][1])
             if roleG in ctx.author.roles:
@@ -71,7 +70,7 @@ def tem_roleG():
 def tem_roleP():
     async def predicate(ctx):
         guilda = ctx.guild
-        roleP_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist")')
+        roleP_id = dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist")')
         if len(roleP_id) != 0:
             roleP = guilda.get_role(roleP_id[0][1])
             if roleP in ctx.author.roles:
@@ -80,15 +79,15 @@ def tem_roleP():
     return commands.check(predicate)
 
 async def scoreboardGuildaAll(guilda):
-        scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE id_guilda = {guilda.id};')
+        scoreboard = dbReturn(f'SELECT * FROM {tableScoreboard} WHERE id_guilda = {guilda.id};')
         return scoreboard
 
 async def scoreboardGuildaPacifist(guilda):
-    scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist");')
+    scoreboard = dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist");')
     return scoreboard
 
 async def scoreboardGuildaGenocide(guilda):
-    scoreboard = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "genocide");')
+    scoreboard = dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND tipo = "genocide");')
     return scoreboard
 
 
@@ -165,7 +164,7 @@ class Sessao:
             # depois revisar esse pesadelo de codigo
             # quando tiver tempo
             score = await retornaScoreboard(guilda, tipo)
-            role_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "{tipo}")')
+            role_id = dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "{tipo}")')
             if len(role_id) != 0:
                 role = guilda.get_role(role_id[0][1])
                 if role is not None:
@@ -187,16 +186,16 @@ class Sessao:
                         await usuario.add_roles(role)
 
 
-            jaAdicionado = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND id_usuario = {usuario.id} AND tipo = "{tipo}");')
+            jaAdicionado = dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND id_usuario = {usuario.id} AND tipo = "{tipo}");')
             if len(jaAdicionado) != 0:
                 tempoVelho = jaAdicionado[0][3]
                 # talvez verificar tambem se eh recorde em any%
                 # preguica
                 if tempo < tempoVelho:
                     await self.canal.send(f'Novo recorde pessoal em **{tipo.capitalize()}%**! (`{tempoVelho}s` -> `{tempo}s`)')
-                    await dbExecute(f'UPDATE {tableScoreboard} SET tempo = {tempo} WHERE (id_guilda = {guilda.id} AND id_usuario = {usuario.id} AND tipo = "{tipo}");')
+                    dbExecute(f'UPDATE {tableScoreboard} SET tempo = {tempo} WHERE (id_guilda = {guilda.id} AND id_usuario = {usuario.id} AND tipo = "{tipo}");')
             else:
-                await dbExecute(f'INSERT INTO {tableScoreboard}(id_guilda, id_usuario, tipo, tempo) VALUES({guilda.id},{usuario.id},"{tipo}",{tempo});')
+                dbExecute(f'INSERT INTO {tableScoreboard}(id_guilda, id_usuario, tipo, tempo) VALUES({guilda.id},{usuario.id},"{tipo}",{tempo});')
         
         # await Jogo.atualizaRoles(top, tempo, tipo)
             
@@ -393,7 +392,7 @@ class Jogo(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        await dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableScoreboard}(
+        dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableScoreboard}(
                             id_guilda INT,
                             id_usuario INT,
                             tipo TEXT,
@@ -401,7 +400,7 @@ class Jogo(commands.Cog):
                         );
                         '''
         )
-        await dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableWR}(
+        dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableWR}(
                             id_guilda INT,
                             id_role INT,
                             tipo TEXT
@@ -410,15 +409,15 @@ class Jogo(commands.Cog):
         )
         # fazer isso em um comando para adm
         for guild in self.bot.guilds:
-            jaAdicionado = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guild.id});')
+            jaAdicionado = dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guild.id});')
             if len(jaAdicionado) == 0:
                 try:
                     roleG = await guild.create_role(name='Genocida', color=0xcc0000)
                     print(f'Criando cargo "Genocida" em {guild} com id {roleG.id}')
                     roleP = await guild.create_role(name='Pacifista', color=0xffffff)
                     print(f'Criando cargo "Pacifista" em {guild} com id {roleP.id}')
-                    await dbExecute(f'INSERT INTO {tableWR}(id_guilda, id_role, tipo) VALUES({guild.id},{roleG.id},"genocide");')
-                    await dbExecute(f'INSERT INTO {tableWR}(id_guilda, id_role, tipo) VALUES({guild.id},{roleP.id},"pacifist");')
+                    dbExecute(f'INSERT INTO {tableWR}(id_guilda, id_role, tipo) VALUES({guild.id},{roleG.id},"genocide");')
+                    dbExecute(f'INSERT INTO {tableWR}(id_guilda, id_role, tipo) VALUES({guild.id},{roleP.id},"pacifist");')
                 except discord.Forbidden:
                     continue
 
@@ -524,7 +523,7 @@ class Jogo(commands.Cog):
     async def pb(self, ctx):
         guilda = ctx.guild
 
-        score = await dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND id_usuario = {ctx.author.id});')
+        score = dbReturn(f'SELECT * FROM {tableScoreboard} WHERE (id_guilda = {guilda.id} AND id_usuario = {ctx.author.id});')
         if len(score) != 0:
             mens = ''
             for i in range(len(score)):
@@ -544,8 +543,8 @@ class Jogo(commands.Cog):
         tranquilo = True
         scoreboardG = await retornaScoreboard(guilda, 'genocide')
         scoreboardP = await retornaScoreboard(guilda, 'pacifist')
-        roleG_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "genocide")')
-        roleP_id = await dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist")')
+        roleG_id = dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "genocide")')
+        roleP_id = dbReturn(f'SELECT * FROM {tableWR} WHERE (id_guilda = {guilda.id} AND tipo = "pacifist")')
         if len(scoreboardG) != 0 and len(roleG_id) != 0:
             roleG = guilda.get_role(roleG_id[0][1])
             top1_score = scoreboardG[0]

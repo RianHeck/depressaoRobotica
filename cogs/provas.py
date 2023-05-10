@@ -8,18 +8,16 @@ from utils.db import *
 from utils.json import *
 from utils.checks import *
 
-sys.path.append("..")
-
 class Provas(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
-        embeds = await returnTable(tableMensagens)
+        embeds = returnTable(tableMensagens)
         for embed in embeds:
             if message.id == embed[1]:
-                await dbExecute(f'''DELETE FROM {tableMensagens}
+                dbExecute(f'''DELETE FROM {tableMensagens}
                                 WHERE id_canal = {message.channel.id};''')
                 # await delete_item(arquivoEmbeds, embed)
 
@@ -35,7 +33,7 @@ class Provas(commands.Cog):
             # VERIFICAR SE AS TABLES EXISTEM, SE NÃO EXCLUIR 1 MENSAGEM DO BOT NO CANAL
             # DE AVISOS
 
-            await dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableAvisos}(
+            dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableAvisos}(
                                 id_canal INT,
                                 id_mens INT DEFAULT 0,
                                 tempo_envio TEXT DEFAULT '07:00:00'
@@ -43,14 +41,14 @@ class Provas(commands.Cog):
                             '''
             )
             
-            await dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableMensagens}(
+            dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableMensagens}(
                                 id_canal INT,
                                 id_mens INT DEFAULT 0
                             );
                             '''
             )
 
-            await dbExecute(f'''CREATE TABLE IF NOT EXISTS {tablePermissoes}(
+            dbExecute(f'''CREATE TABLE IF NOT EXISTS {tablePermissoes}(
                                 id_guilda INT,
                                 id_role INT DEFAULT 0
                             );
@@ -62,7 +60,7 @@ class Provas(commands.Cog):
         
         print('Verificando e deletando embeds deixados para trás')
         # embeds = await load_json(arquivoEmbeds)
-        embeds = await returnTable(tableMensagens)
+        embeds = returnTable(tableMensagens)
         for embed in embeds:
             canal = self.bot.get_channel(embed[0])
             try:
@@ -75,7 +73,7 @@ class Provas(commands.Cog):
             else:
                 print(f'Deletada uma mensagem em {canal.guild}/{canal}')
             finally:
-                await dbExecute(f'''DELETE FROM {tableMensagens}
+                dbExecute(f'''DELETE FROM {tableMensagens}
                             WHERE id_canal = {canal.id};''')
 
     
@@ -91,10 +89,10 @@ class Provas(commands.Cog):
         provas = load_json(arquivoProvas)
 
         hoje = datetime.date.today()
-        hojeString = datetime.date.today().strftime('%d/%m/%y')
+        hojeString = hoje.strftime('%d/%m/%y')
         diaDaSemana = hoje.weekday()
 
-        FIM = datetime.date(2022, 12, 21)
+        FIM = datetime.date(2023, 7, 4)
         diasParaFim = (FIM-hoje).days
         FIMDiaSemana = FIM.weekday()
 
@@ -190,7 +188,7 @@ class Provas(commands.Cog):
             # mensagemJunto = await ctx.channel.send(f'{ctx.author.mention}')
             mensagemEmbed = await ctx.channel.send(content=f'{ctx.author.mention}', embed=embedProvas)
             #await write_json(arquivoEmbeds, (mensagemEmbed.id, ctx.channel.id))
-            await dbExecute(f'INSERT INTO {tableMensagens}(id_canal, id_mens) VALUES({ctx.channel.id},{mensagemEmbed.id})')
+            dbExecute(f'INSERT INTO {tableMensagens}(id_canal, id_mens) VALUES({ctx.channel.id},{mensagemEmbed.id})')
 
             await mensagemEmbed.delete(delay=120)
             # delete_item(arquivoEmbeds, (mensagemEmbed.id, ctx.channel.id))
@@ -201,15 +199,15 @@ class Provas(commands.Cog):
         if canal == -1:
             canal = ctx.channel
         
-        jaAdicionado = await dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = "{canal.id}"')
+        jaAdicionado = dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = "{canal.id}"')
 
         if not jaAdicionado:
 
-            await dbExecute(f'''INSERT INTO {tableAvisos}(id_canal,id_mens) 
+            dbExecute(f'''INSERT INTO {tableAvisos}(id_canal,id_mens) 
                             SELECT {canal.id}, 0
                             WHERE NOT EXISTS(SELECT 1 FROM {tableAvisos} WHERE id_canal = {canal.id});
                             ''')
-            horario = await dbReturn(f'SELECT tempo_envio FROM {tableAvisos} WHERE id_canal = {canal.id}')
+            horario = dbReturn(f'SELECT tempo_envio FROM {tableAvisos} WHERE id_canal = {canal.id}')
             await ctx.send(f'Canal {canal} adicionado aos avisos automáticos, horário padrão: {horario[0][0]}')
         else:
             await ctx.send(f'O canal {canal} já foi adicionado')
@@ -223,7 +221,7 @@ class Provas(commands.Cog):
         # if canal.permissions_for(ctx.guild.me).manage_messages:
         #     await ctx.message.delete()
 
-        mensagem = await dbReturn(f'SELECT * FROM {tableAvisos} WHERE id_canal = {canal.id}')
+        mensagem = dbReturn(f'SELECT * FROM {tableAvisos} WHERE id_canal = {canal.id}')
         if mensagem:
             if mensagem[0][1] != 0:
                 try:
@@ -235,9 +233,9 @@ class Provas(commands.Cog):
                 else:
                     print(f'Deletada uma mensagem automática em {canal.guild}/{canal}')
                 finally:
-                    await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[0][1]}')
+                    dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[0][1]}')
         
-            await dbExecute(f'DELETE FROM {tableAvisos} WHERE id_canal = {canal.id};')
+            dbExecute(f'DELETE FROM {tableAvisos} WHERE id_canal = {canal.id};')
             await ctx.send(f'Canal {canal} removido dos avisos automáticos')
         else:
             await ctx.send(f'Canal **{canal}** não está adicionado aos avisos automáticos')
@@ -250,10 +248,10 @@ class Provas(commands.Cog):
         # if canal.permissions_for(ctx.guild.me).manage_messages:
         #             await ctx.message.delete()
 
-        jaAdicionado = await dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = {canal.id}')
+        jaAdicionado = dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = {canal.id}')
 
         if jaAdicionado:
-            horario = await dbReturn(f'SELECT tempo_envio FROM {tableAvisos} WHERE id_canal = {canal.id}')
+            horario = dbReturn(f'SELECT tempo_envio FROM {tableAvisos} WHERE id_canal = {canal.id}')
 
             mensagem = await ctx.send(f'O horário configurado é `{horario[0][0]}` para **{canal}**')
             await mensagem.delete(delay=60)
@@ -278,7 +276,7 @@ class Provas(commands.Cog):
         # if canal.permissions_for(ctx.guild.me).manage_messages:
         #             await ctx.message.delete()
 
-        jaAdicionado = await dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = "{canal.id}"')
+        jaAdicionado = dbReturn(f'SELECT id_canal FROM {tableAvisos} WHERE id_canal = "{canal.id}"')
 
         if jaAdicionado:
 
@@ -288,7 +286,7 @@ class Provas(commands.Cog):
                 await ctx.send('Horário inválido')
                 return
 
-            await dbExecute(f'''UPDATE {tableAvisos} SET tempo_envio = '{horarioFormatado}' WHERE id_canal = {canal.id};
+            dbExecute(f'''UPDATE {tableAvisos} SET tempo_envio = '{horarioFormatado}' WHERE id_canal = {canal.id};
                             ''')
             horarioFormatadoStr = datetime.time.isoformat(horarioFormatado, timespec='auto')
             mensagem = await ctx.send(f'Horário setado para {horarioFormatadoStr} para avisos automáticos em **{canal}**')
@@ -305,11 +303,11 @@ class Provas(commands.Cog):
             await ctx.send('Role inválida')
             return
 
-        jaAdicionado = await dbReturn(f'SELECT id_role FROM {tablePermissoes} WHERE id_role = "{role.id}"')
+        jaAdicionado = dbReturn(f'SELECT id_role FROM {tablePermissoes} WHERE id_role = "{role.id}"')
 
         if not jaAdicionado:
 
-            await dbExecute(f'''INSERT INTO {tablePermissoes}(id_guilda,id_role) 
+            dbExecute(f'''INSERT INTO {tablePermissoes}(id_guilda,id_role) 
                             SELECT {guilda.id}, {role.id}
                             WHERE NOT EXISTS(SELECT 1 FROM {tablePermissoes} WHERE id_guilda = {guilda.id});
                             ''')
@@ -325,11 +323,11 @@ class Provas(commands.Cog):
             await ctx.send('Role inválida')
             return
 
-        jaAdicionado = await dbReturn(f'SELECT id_role FROM {tablePermissoes} WHERE id_role = "{role.id}"')
+        jaAdicionado = dbReturn(f'SELECT id_role FROM {tablePermissoes} WHERE id_role = "{role.id}"')
 
         if jaAdicionado:
 
-            await dbExecute(f'DELETE FROM {tablePermissoes} WHERE id_role = {role.id};')
+            dbExecute(f'DELETE FROM {tablePermissoes} WHERE id_role = {role.id};')
             await ctx.send(f'Role {role} removida')
         else:
             await ctx.send(f'A role **{role}** não foi adicionada')
@@ -383,7 +381,7 @@ class Provas(commands.Cog):
     @commands.command(name='showall')
     @eu()
     async def showAll(self, ctx):
-        mensagens = await returnTable(tableAvisos) 
+        mensagens = returnTable(tableAvisos) 
         for mensagem in mensagens:
             canal = self.bot.get_channel(mensagem[0])
             # usar try catch para notificar ou excluir canais que não vejo (None)
@@ -397,7 +395,7 @@ class Provas(commands.Cog):
             if canalProvas == -1:
                 canalProvas = ctx.channel
 
-            mensagem = await dbReturn(f'SELECT id_mens FROM {tableAvisos} WHERE id_canal = "{canalProvas.id}"')
+            mensagem = dbReturn(f'SELECT id_mens FROM {tableAvisos} WHERE id_canal = "{canalProvas.id}"')
             if not mensagem:
                 await ctx.send(f'Canal **{canalProvas}** não adicionado para avisos automáticos')
                 return
@@ -410,7 +408,7 @@ class Provas(commands.Cog):
                 else:
                     print(f'Deletada uma mensagem automática em {canalProvas.guild}/{canalProvas}')
                 finally:
-                    await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[0][0]}')
+                    dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[0][0]}')
 
             sem = 2 # quantidade de semanas para verificar
             print(f'Enviando provas task manual para {canalProvas}|{canalProvas.guild} por {ctx.author}')
@@ -439,7 +437,7 @@ class Provas(commands.Cog):
 
             mensagemEmbed = await canalProvas.send(content='@everyone', embed=embedProvas)
 
-            await dbExecute(f'UPDATE {tableAvisos} SET id_mens = {mensagemEmbed.id} WHERE id_canal = {canalProvas.id}')
+            dbExecute(f'UPDATE {tableAvisos} SET id_mens = {mensagemEmbed.id} WHERE id_canal = {canalProvas.id}')
 
 
     @reseta.error
@@ -458,8 +456,12 @@ class Provas(commands.Cog):
     async def aviso_provas(self):
         # verificar se o provas.json existe.
         # se não, pedir para criar e não permitir task ou comando manual (fazer por checks)
+        FIM = datetime.date(2023, 7, 4)
+        hoje = datetime.date.today()
+        if FIM < hoje:
+            return
 
-        mensagens = await returnTable(tableAvisos)
+        mensagens = returnTable(tableAvisos)
         for mensagem in mensagens:
             canalProvas = self.bot.get_channel(mensagem[0])
 
@@ -483,7 +485,7 @@ class Provas(commands.Cog):
                     else:
                         print(f'Deletada uma mensagem automática em {canalProvas.guild}/{canalProvas}')
                     finally:
-                        await dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[1]}')
+                        dbExecute(f'UPDATE {tableAvisos} SET id_mens = 0 WHERE id_mens = {mensagem[1]}')
 
                 sem = 2 # quantidade de semanas para verificar
                 print(f'Enviando provas task para {canalProvas}|{canalProvas.guild}')
@@ -512,7 +514,7 @@ class Provas(commands.Cog):
 
                 mensagemEmbed = await canalProvas.send(content='@everyone', embed=embedProvas)
 
-                await dbExecute(f'UPDATE {tableAvisos} SET id_mens = {mensagemEmbed.id} WHERE id_canal = {canalProvas.id}')
+                dbExecute(f'UPDATE {tableAvisos} SET id_mens = {mensagemEmbed.id} WHERE id_canal = {canalProvas.id}')
 
 
 def setup(bot):

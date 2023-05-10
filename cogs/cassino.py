@@ -8,8 +8,6 @@ from utils.checks import *
 import asyncio
 from numpy import interp
 
-sys.path.append("..")
-
 usuarios_jogando = {}
 
 class Sessao():

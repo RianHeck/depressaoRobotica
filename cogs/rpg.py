@@ -10,8 +10,6 @@ from utils.db import *
 from main import prefix
 from utils.json import load_json
 
-sys.path.append("..")
-
 # fazer rpg simples que nem simpleMMO
 # ganhar moedas ao matar bichos
 # usar moedas pra upar ou taxar outras pessoas no server
@@ -128,7 +126,7 @@ class Sessao():
         usuarios_jogando[contexto] = self
 
     async def comeca(self, ctx):
-        self.db_usuario = (await dbReturnDict(f'SELECT * FROM {tableRPG} WHERE id_usuario = {ctx.author.id};'))
+        self.db_usuario = (dbReturnDict(f'SELECT * FROM {tableRPG} WHERE id_usuario = {ctx.author.id};'))
         if len(self.db_usuario) == 0:
             self.personagem_jogador = await self.cria_personagem()
             self.db_usuario = self.personagem_jogador.__dict__
@@ -208,7 +206,7 @@ class Rpg(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        await dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableRPG}(
+        dbExecute(f'''CREATE TABLE IF NOT EXISTS {tableRPG}(
                             id_usuario INT PRIMARY KEY,
                             hp INT,
                             dmg INT,
@@ -222,7 +220,7 @@ class Rpg(commands.Cog):
     @commands.command()
     async def coloca(self, ctx, hp, dmg, defa):
         moedas = 42
-        await dbExecute(f'''INSERT INTO {tableRPG}(id_usuario, hp, dmg, defa, items, moedas) VALUES({ctx.author.id},{hp},{dmg}, {defa}, "espada;escudo", {moedas})
+        dbExecute(f'''INSERT INTO {tableRPG}(id_usuario, hp, dmg, defa, items, moedas) VALUES({ctx.author.id},{hp},{dmg}, {defa}, "espada;escudo", {moedas})
                             ON CONFLICT(id_usuario) DO UPDATE SET hp=excluded.hp, dmg=excluded.dmg, defa=excluded.defa, items=excluded.items, moedas=excluded.moedas;''')
 
     # APENAS ACESSAR A DB EM UM LUGAR POR VEZ
@@ -230,7 +228,7 @@ class Rpg(commands.Cog):
     # ACESSEM TAMBÉM
     @commands.command()
     async def tira(self, ctx, palavra):
-        db_usuario = (await dbReturnDict(f'SELECT * FROM {tableRPG} WHERE id_usuario = {ctx.author.id};'))
+        db_usuario = (dbReturnDict(f'SELECT * FROM {tableRPG} WHERE id_usuario = {ctx.author.id};'))
         if len(db_usuario) == 0:
             await ctx.send('Você não tem um personagem criado!')
             return
