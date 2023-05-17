@@ -193,6 +193,62 @@ class Provas(commands.Cog):
             await mensagemEmbed.delete(delay=60)
             # delete_item(arquivoEmbeds, (mensagemEmbed.id, ctx.channel.id))
 
+    @commands.command(name='repetidas', enabled=False)
+    async def repetidas(self, ctx, semanas=2):
+        
+        provas = load_json(arquivoProvas)
+
+        hoje = datetime.date.today()
+        hojeString = hoje.strftime('%d/%m/%y')
+        diaDaSemana = hoje.weekday()
+
+        FIM = datetime.date(2022, 12, 21)
+        diasParaFim = (FIM-hoje).days
+
+        diasUteisParaFim = 0
+        for i in range(diasParaFim):
+            diaVerificar = hoje + datetime.timedelta(days=i)
+            if diaVerificar.weekday() != 5 and diaVerificar.weekday() != 6:
+                diasUteisParaFim += 1
+
+
+        if diasParaFim == 0:
+            embedProvas = discord.Embed(
+            title=f'**{self.diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {semanas} semana(s)\nACABO RAPAZIADA, É ISSO. ATÉ 2023!', color=0x336EFF)
+        else:
+            embedProvas = discord.Embed(
+            title=f'**{self.diaSemana(diaDaSemana)}, {hojeString}**', description=f'Provas para as próximas {semanas} semana(s)\nFaltam {diasParaFim}/{diasUteisParaFim} dias para o fim do semestre.', color=0x336EFF)
+
+
+        provasParaPeriodo = []
+        for materia in provas:
+            for provaIndividual in provas[materia]:
+                dataProvaRaw = provaIndividual['data']
+                dataProva = datetime.date.fromisoformat(dataProvaRaw)
+                
+                if(dataProva-hoje).days <= (7 * semanas) and (dataProva-hoje).days >= 0:
+                    provasParaPeriodo.append({'nome': provaIndividual['nome'],
+                                            'diasParaProva': (datetime.date.fromisoformat(provaIndividual['data'])-hoje).days,
+                                            'materia': materia,
+                                            'data': dataProva
+                                            })
+                    
+
+        provasParaPeriodo = sorted(provasParaPeriodo, key=lambda prova: prova['diasParaProva'])
+
+        # datasRepetidas = []
+        # for pont1 in provasParaPeriodo:
+        #     for pont2 in provasParaPeriodo:
+        #         if pont1 != pont2 and pont1['data'] == pont2['data']:
+        #             if data != []:
+        #                 for data in datasRepetidas:
+        #                     if data['data'] == pont1['data']:
+        #                 if datasRepetidas.index():
+        #                     datasRepetidas.append({'data': pont1['data'],
+        #                                         'qntd': a
+        #                                         })
+
+
     @commands.command(name='adiciona')
     @permissao()
     async def adicionaAvisos(self, ctx, canal : discord.TextChannel = -1):
