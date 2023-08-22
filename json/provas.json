@@ -1,36 +1,36 @@
 {
-    "Sinais e Sistemas":[
-        {"nome" :"Prova 1", "data" : "2023-05-15"},
-        {"nome" :"Prova 2", "data" : "2023-06-26"},
-        {"nome" :"Recuperação", "data" : "2023-06-29"}
+    "Compiladores":[
+        {"nome" :"Prova 1", "data" : "2023-10-10"},
+        {"nome" :"Prova 2", "data" : "2023-12-23"},
+        {"nome" :"Recuperação", "data" : "2023-12-12"}
     ],
 
-    "Eletrônica Analógica A":[
-        {"nome" :"Prova 1", "data" : "2023-04-04"},
-        {"nome" :"Prova 2", "data" : "2023-05-23"},
-        {"nome" :"Prova 3", "data" : "2023-06-26"},
-        {"nome" :"Recuperação", "data" : "2023-07-03"}
+    "Eletrônica Analógica C":[
+        {"nome" :"Prova 1", "data" : "2023-09-27"},
+        {"nome" :"Prova 2", "data" : "2023-11-29"},
+        {"nome" :"Recuperação", "data" : "2023-12-18"}
     ],
 
-    "Circuitos Digitais Para Computação":[
-        {"nome" :"Prova 1", "data" : "2023-04-19"},
-        {"nome" :"Prova 2", "data" : "2023-05-18"},
-        {"nome" :"Prova 3", "data" : "2023-06-21"},
-        {"nome" :"Recuperação", "data" : "2023-06-28"}
+    "Princípios de Sistemas de Comunicação":[
+        {"nome" :"Prova 1", "data" : "2023-10-09"},
+        {"nome" :"Prova 2", "data" : "2023-11-24"}
     ],
 
-    "Engenharia de Software":[
-        {"nome" :"Seminário", "data" : "2023-05-08"},
-        {"nome" :"Projeto", "data" : "2023-06-26"},
-        {"nome" :"Recuperação", "data" : "2023-07-03"}
+    "Organização e Arquitetura de Computadores":[
+        {"nome" :"Prova 1", "data" : "2023-09-05"},
+        {"nome" :"Prova 2", "data" : "2023-11-01"},
+        {"nome" :"Prova 3", "data" : "2023-12-06"}
     ],
 
-     "Economia Política":[
-        {"nome" :"Prova 1", "data" : "2023-03-30"},
-        {"nome" :"Prova 2", "data" : "2023-05-11"},
-        {"nome" :"Prova 3", "data" : "2023-06-15"},
-        {"nome" :"Seminário", "data" : "2023-06-29"},
-        {"nome" :"Recuperação", "data" : "2023-07-06"}
+     "Controle de Sistemas Lineares":[
+        {"nome" :"Prova 1", "data" : "2023-10-04"},
+        {"nome" :"Prova 2", "data" : "2023-10-19"},
+        {"nome" :"Prova 3", "data" : "2023-12-06"}
+    ],
+
+    "Sistemas Inteligentes":[
+        {"nome" :"Prova 1", "data" : "2023-10-05"},
+        {"nome" :"Prova 2", "data" : "2023-12-07"}
     ]
 
 }
