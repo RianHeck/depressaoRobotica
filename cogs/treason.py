@@ -21,7 +21,13 @@ class Jogador():
     def __init__(self) -> None:
         self.dinheiro = 2
         self.numeroDeInfluencia = 2
-        self.influencias = {}
+        self.influencias = []
+
+
+class Influencia:
+    def __init__(self, nome) -> None:
+        self.nome = nome
+        self.revelada = False
 
 
 class Sessao():
@@ -33,6 +39,7 @@ class Sessao():
     
     async def comeca(self):
         await self.view.comeca()
+
 
 class treasonView(View):
     def __init__(self, *items: discord.ui.Item, timeout: float = 180, sessao : Sessao):
@@ -52,6 +59,7 @@ class treasonView(View):
         self.listaMensagensBot = []
         self.roles = ['assassin', 'contessa', 'captain', 'duke', 'inquisitor']
         self.deque = []
+        self.thread = None
 
     def montarDeque(self):
         for i in range(0, 3):
@@ -97,7 +105,6 @@ class treasonView(View):
                 self.embed.set_field_at(index=0, name='Jogadores', value='')
             else:
                 self.embed.set_field_at(index=0, name='Jogadores', value=f'{f"{chr(10)}".join(player.name for player in self.jogadores)}')
-                # print(f'{f"{chr(10)}".join(player.name for player in self.jogadores)}')
             
             await self.embedMensagem.edit(embed=self.embed, view=self)
             await interaction.response.defer()
@@ -108,10 +115,8 @@ class treasonView(View):
 
             if(len(self.jogadores) == 0):
                 self.embed.set_field_at(index=0, name='Jogadores', value='')
-                # print('vazio')
             else:
                 self.embed.set_field_at(index=0, name='Jogadores', value=f'{f"{chr(10)}".join(player.name for player in self.jogadores)}')
-                # print(f'{f"{chr(10)}".join(player.name for player in self.jogadores)}')
             
             await self.embedMensagem.edit(embed=self.embed, view=self)
             await interaction.response.defer()
@@ -119,39 +124,20 @@ class treasonView(View):
         else:
             await interaction.response.send_message('Você não está no jogo!', ephemeral=True, delete_after=3)
 
-
-    # async def sair_callback(self, interaction):
-    #     if interaction.user in self.jogadores:
-    #         self.jogadores.remove(interaction.user)
-    #         if interaction.user not in self.mensagemLobby.keys():
-    #             #self.mensagemLobby[interaction.user] = await interaction.response.send_message(f'{interaction.user.name} saiu do jogo!')
-    #             await interaction.response.defer()
-    #         else:
-    #             # print(type(self.mensagemLobby))
-    #             # await self.mensagemLobby[interaction.user].edit_original_response(content=f'{interaction.user.name} saiu do jogo!')
-
-    #             if(len(self.jogadores) == 0):
-    #                 self.embed.set_field_at(index=0, name='Jogadores', value='')
-    #             else:
-    #                 self.embed.set_field_at(index=0, name='Jogadores', value=f'{f"{chr(10)}".join(player.name for player in self.jogadores)}')
-    #             print(f'{f"{chr(10)}".join(player.name for player in self.jogadores)}')
-    #             await self.embedMensagem.edit(embed=self.embed, view=self)
-    #             await interaction.response.defer()
-    #     else:
-    #         await interaction.response.send_message('Você não está no jogo!', ephemeral=True, delete_after=3)
-
     async def comecar_callback(self, interaction):
         await interaction.response.defer()
         if len(self.jogadores) == 0:
             pass
         else:
+            shuffle(self.jogadores)
             await self.criarBotoesJogadores()
             self.montarDeque()
             self.darCartas()
             for jogador in self.jogadores:
-                await interaction.channel.send(f'{jogador.name} : {" e ".join(role for role in self.objetoJogadores[jogador].keys())}')
-            await self.escolherAcao()
-            await self.embedComeco()
+                await interaction.channel.send(f'{jogador.name} : {" e ".join(role.nome for role in self.objetoJogadores[jogador].influencias)}')
+            await self.gerarBotoesAcao()
+            #await self.embedComeco()
+            await self.embedMensagem.edit(embed=self.embed, view=self)
 
     async def encerrar_callback(self, interaction):
         await interaction.response.defer()
@@ -164,12 +150,17 @@ class treasonView(View):
             carta2 = choice(self.deque)
             self.deque.remove(carta2)
 
-            self.objetoJogadores[jogador] = {carta1 : False, carta2 : False}
+            # guardar cartas como objetos de Influencia
+
+            self.objetoJogadores[jogador] = Jogador()
+            self.objetoJogadores[jogador].influencias.append(Influencia(f'{carta1}'))
+            self.objetoJogadores[jogador].influencias.append(Influencia(f'{carta2}'))
 
     async def encerra(self):
         self.clear_items()
         self.embed.clear_fields()
         await self.embedMensagem.edit(embed=self.embed, view=self)
+        await self.thread.delete()
         for mensagem in self.listaMensagensBot:
             await mensagem.delete_original_message()
         self.stop()
@@ -179,8 +170,10 @@ class treasonView(View):
     async def embedComeco(self):
         if self.embedMensagem == 0:
             self.embedMensagem = await self.sessao.canal.send(embed=self.embed, view=self)
+            self.thread = await self.embedMensagem.create_thread(name='Coup')
         else:
             await self.embedMensagem.edit(embed=self.embed, view=self)
+
 
     async def criarBotoesJogadores(self):
         self.botoes = []
@@ -195,46 +188,79 @@ class treasonView(View):
             return False
                
         self.playerAlvo = interaction.custom_id
-        #print(interaction.to_dict())
-        #await interaction.channel.send(f'{interaction.custom_id}')
-        # await interaction.response.send_message(f'{interaction.user.name} taxou {self.playerAlvo}')
+        # await interaction.response.defer()
         await self.executarAcao(interaction)
 
-    # @estaNaVez(self.jogadores)
-    async def executarAcao(self, interaction):
+
+    async def escolherAcao(self, interaction):
         if self.jogadores.index(interaction.user) != self.vez:
             await interaction.response.send_message('Espere sua vez!', ephemeral=True, delete_after=3)
             return False
         
         if self.acaoAtual == 'taxar':
+            await self.executarAcao(interaction)
+        
+        elif self.acaoAtual == 'roubar':
+            await interaction.response.defer()
+            await self.gerarBotoesJogador()
+        
+        elif self.acaoAtual == 'assassinar':
+            await interaction.response.defer()
+            await self.gerarBotoesJogador()
+        
+        elif self.acaoAtual == 'trocar':
+            await self.executarAcao(interaction)
+        
+        elif self.acaoAtual == 'renda':
+            await self.executarAcao(interaction)
+        
+        elif self.acaoAtual == 'auxilio':
+            await self.executarAcao(interaction)
+        
+        elif self.acaoAtual == 'coup':
+            await interaction.response.defer()
+            await self.gerarBotoesJogador()
+
+
+    # @estaNaVez(self.jogadores)
+    async def executarAcao(self, interaction):
+        # if self.jogadores.index(interaction.user) != self.vez:
+        #     await interaction.response.send_message('Espere sua vez!', ephemeral=True, delete_after=3)
+        #     return False
+        
+        if self.acaoAtual == 'taxar':
             self.listaMensagensBot.append(await interaction.response.send_message(f'{interaction.user.name} pegou 3$ como imposto'))
+        
         elif self.acaoAtual == 'roubar':
             self.listaMensagensBot.append(await interaction.response.send_message(f'{interaction.user.name} extorquiu {self.playerAlvo}'))
+        
         elif self.acaoAtual == 'assassinar':
             self.listaMensagensBot.append(await interaction.response.send_message(f'{interaction.user.name} assassinou {self.playerAlvo}'))
+        
         elif self.acaoAtual == 'trocar':
             self.listaMensagensBot.append(await interaction.response.send_message(f'{interaction.user.name} trocou suas roles'))
+        
         elif self.acaoAtual == 'renda':
             self.listaMensagensBot.append(await interaction.response.send_message(f'{interaction.user.name} pegou 1$'))
+        
         elif self.acaoAtual == 'auxilio':
             self.listaMensagensBot.append(await interaction.response.send_message(f'{interaction.user.name} pegou 2$'))
+        
         elif self.acaoAtual == 'coup':
             self.listaMensagensBot.append(await interaction.response.send_message(f'{interaction.user.name} fez um coup contra {self.playerAlvo}'))
         
-        self.vez = (self.vez+1)%(len(self.jogadores))
-        await self.escolherAcao()
 
-    async def escolherAcao(self):
+        self.vez = (self.vez+1)%(len(self.jogadores))
+        await self.gerarBotoesAcao()
+
+    async def gerarBotoesAcao(self):
         self.clear_items()
         for i in range(len(self.acoesBotoes)):
             self.add_item(self.acoesBotoes[i])
         await self.embedMensagem.edit(embed=self.embed, view=self)
 
-    async def escolherJogador(self, interaction):
+    async def gerarBotoesJogador(self):
         # unificar as funcoes de escolher e usar if pra decidir que botoes mostrar
-        if self.jogadores.index(interaction.user) != self.vez:
-            await interaction.response.send_message('Espere sua vez!', ephemeral=True, delete_after=3)
-            return False
         self.clear_items()
         for i in range(len(self.botoes)):
             self.add_item(self.botoes[i])
@@ -253,44 +279,37 @@ class treasonView(View):
     @discord.ui.button(label='Taxar', custom_id="taxar", emoji='💰')
     async def taxar_callback(self, button, interaction):
         self.acaoAtual = interaction.custom_id
-        #self.acaoAtual = 'taxar'
-        await self.executarAcao(interaction)
+        await self.escolherAcao(interaction)
         
     @discord.ui.button(label='Roubar', custom_id="roubar", emoji='🫳')
     async def roubar_callback(self, button, interaction):
-        self.acaoAtual = 'roubar'
-        await self.escolherJogador(interaction)
-        await interaction.response.defer()
+        self.acaoAtual = interaction.custom_id
+        await self.escolherAcao(interaction)
     
     @discord.ui.button(label='Assassinar', custom_id="assassinar", emoji='🔪')
     async def assassinar_callback(self, button, interaction):
-        self.acaoAtual = 'assassinar'
-        await self.escolherJogador(interaction)
-        await interaction.response.defer()
+        self.acaoAtual = interaction.custom_id
+        await self.escolherAcao(interaction)
     
     @discord.ui.button(label='Trocar', custom_id="trocar", emoji='🔄')
     async def trocar_callback(self, button, interaction):
-        self.acaoAtual = 'trocar'
-        await self.executarAcao(interaction)
-        # await interaction.response.defer()
+        self.acaoAtual = interaction.custom_id
+        await self.escolherAcao(interaction)
     
     @discord.ui.button(label='Renda', custom_id="renda", emoji='🪙')
     async def renda_callback(self, button, interaction):
-        self.acaoAtual = 'renda'
-        await self.executarAcao(interaction)
-        # await interaction.response.defer()
+        self.acaoAtual = interaction.custom_id
+        await self.escolherAcao(interaction)
     
     @discord.ui.button(label='Auxílio Estrangeiro', custom_id="auxilio", emoji='🪙')
     async def auxilio_callback(self, button, interaction):
-        self.acaoAtual = 'auxilio'
-        await self.executarAcao(interaction)
-        # await interaction.response.defer()
+        self.acaoAtual = interaction.custom_id
+        await self.escolherAcao(interaction)
 
     @discord.ui.button(label='Coup', custom_id="coup", emoji='🔫')
     async def coup_callback(self, button, interaction):
-        self.acaoAtual = 'coup'
-        await self.escolherJogador(interaction)
-        await interaction.response.defer()
+        self.acaoAtual = interaction.custom_id
+        await self.escolherAcao(interaction)
 
 class Treason(commands.Cog):
     def __init__(self, bot):
