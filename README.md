@@ -1,5 +1,5 @@
 # depressaoRobotica
-tá no título véi
+Bot do discord usando pycord
 
 # Utilizando o bot
 - Configurar o arquivo config.json com as informações necessárias
