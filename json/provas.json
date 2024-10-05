@@ -65,5 +65,10 @@
 
     "Empreendedorismo": [
         {"nome": "Projeto", "data": "2025-02-20"}
+    ],
+    
+    "Desenho Técnico": [
+        {"nome": "Prova 1", "data": "2024-12-04"},
+        {"nome": "Prova 2", "data": "2024-02-19"},
     ]
 }
