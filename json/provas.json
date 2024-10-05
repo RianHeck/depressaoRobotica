@@ -1,36 +1,69 @@
 {
-    "Compiladores":[
-        {"nome" :"Prova 1", "data" : "2023-10-10"},
-        {"nome" :"Prova 2", "data" : "2023-12-23"},
-        {"nome" :"Recuperação", "data" : "2023-12-12"}
+    "Segurança Computacional": [
+        {"nome": "Prova 1", "data": "2024-11-25"},
+        {"nome": "Prática 1", "data": "2024-10-11"},
+        {"nome": "Prática 2", "data": "2024-11-04"},
+        {"nome": "Prática 3", "data": "2024-12-09"},
+        {"nome": "Prática 3", "data": "2024-12-13"},
+        {"nome": "Prática 3", "data": "2024-12-20"},
+        {"nome": "Prática 4", "data": "2025-02-17"},
+        {"nome": "Atividade 1", "data": "2024-10-25"},
+        {"nome": "Atividade 2", "data": "2024-12-02"},
+        {"nome": "Atividade 3", "data": "2025-02-14"},
+        {"nome": "Quiz 1", "data": "2024-10-18"},
+        {"nome": "Quiz 2", "data": "2024-11-11"},
+        {"nome": "Quiz 3", "data": "2024-12-06"},
+        {"nome": "Quiz 4", "data": "2025-02-07"}
     ],
 
-    "Eletrônica Analógica C":[
-        {"nome" :"Prova 1", "data" : "2023-09-27"},
-        {"nome" :"Prova 2", "data" : "2023-11-29"},
-        {"nome" :"Recuperação", "data" : "2023-12-18"}
+    "Processamento Digital De Imagens": [
+        {"nome": "Prova 1", "data": "2024-12-05"},
+        {"nome": "Prova 2", "data": "2025-02-20"},
+        {"nome": "Projeto", "data": "2025-02-22"},
+        {"nome": "Lista 1", "data": "2024-12-05"},
+        {"nome": "Tarefa 1", "data": "2024-12-12"},
+        {"nome": "Tarefa 2", "data": "2025-02-10"}
     ],
 
-    "Princípios de Sistemas de Comunicação":[
-        {"nome" :"Prova 1", "data" : "2023-10-09"},
-        {"nome" :"Prova 2", "data" : "2023-11-24"}
+    "Oficina De Integração": [
+        {"nome": "Projeto", "data": "2025-02-11"}
     ],
 
-    "Organização e Arquitetura de Computadores":[
-        {"nome" :"Prova 1", "data" : "2023-09-05"},
-        {"nome" :"Prova 2", "data" : "2023-11-01"},
-        {"nome" :"Prova 3", "data" : "2023-12-06"}
+    "Sistemas Embarcados": [
+        {"nome": "Parte 1", "data": "2024-10-23"},
+        {"nome": "Parte 2", "data": "2024-12-11"},
+        {"nome": "Parte 3", "data": "2025-02-06"},
+        {"nome": "Parte 4", "data": "2025-02-19"}
     ],
 
-     "Controle de Sistemas Lineares":[
-        {"nome" :"Prova 1", "data" : "2023-10-04"},
-        {"nome" :"Prova 2", "data" : "2023-10-19"},
-        {"nome" :"Prova 3", "data" : "2023-12-06"}
+    "Redes 2": [
+        {"nome": "Lista 1", "data": "2024-10-18"},
+        {"nome": "Lista 2", "data": "2024-10-30"},
+        {"nome": "Lista 3", "data": "2024-11-20"},
+        {"nome": "Lista 4", "data": "2024-12-20"},
+        {"nome": "Lista 5", "data": "2025-02-21"},
+        {"nome": "Lista Disc 1", "data": "2024-11-27"},
+        {"nome": "Lista Disc 2", "data": "2025-02-21"},
+        {"nome": "Atividade 1", "data": "2024-10-30"},
+        {"nome": "Atividade 2", "data": "2024-11-17"},
+        {"nome": "Atividade 3", "data": "2025-02-12"},
+        {"nome": "Atividade 4", "data": "2025-02-23"}
     ],
 
-    "Sistemas Inteligentes":[
-        {"nome" :"Prova 1", "data" : "2023-10-05"},
-        {"nome" :"Prova 2", "data" : "2023-12-07"}
+    "Química Experimental": [
+        {"nome": "Avaliação 1", "data": "2024-12-11"},
+        {"nome": "Avaliação 2", "data": "2025-02-12"},
+        {"nome": "Relatório 1", "data": "2024-10-30"},
+        {"nome": "Relatório 2", "data": "2024-11-06"},
+        {"nome": "Relatório 3", "data": "2024-11-13"},
+        {"nome": "Relatório 4", "data": "2024-11-27"},
+        {"nome": "Relatório 5", "data": "2024-12-04"},
+        {"nome": "Relatório 6", "data": "2024-12-11"},
+        {"nome": "Relatório 7", "data": "2025-02-05"},
+        {"nome": "Relatório 8", "data": "2025-02-12"}
+    ],
+
+    "Empreendedorismo": [
+        {"nome": "Projeto", "data": "2025-02-20"}
     ]
-
 }
